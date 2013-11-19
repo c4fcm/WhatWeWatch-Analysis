@@ -1,5 +1,5 @@
 
-=What We Watch
+# What We Watch
 Data analysis scripts
 
 This package contains scripts to analyze country-coded video trending data
