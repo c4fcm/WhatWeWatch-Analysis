@@ -1,3 +1,4 @@
 app.config
 *.pyc
+.DS_Store
 
