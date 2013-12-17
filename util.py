@@ -1,3 +1,26 @@
+import csv
+import os
+
+def write_results_csv(experiment, run, filename, data, headers):
+    try:
+        os.stat('results')
+    except OSError:
+        os.mkdir('results')
+    try:
+        os.stat('results/%s' % experiment)
+    except OSError:
+        os.mkdir('results/%s' % experiment)
+    try:
+        os.stat('results/%s/%s' % (experiment, run))
+    except OSError:
+        os.mkdir('results/%s/%s' % (experiment, run))
+    path = 'results/%s/%s/%s.csv' % (experiment, run, filename)
+    with open(path, 'wb') as f:
+        f.write(','.join(headers))
+        f.write("\n")
+        for row in data:
+            f.write(','.join([str(x) for x in row]))
+            f.write("\n")
 
 class Lookup(object):
     
