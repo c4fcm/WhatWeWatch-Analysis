@@ -1,9 +1,9 @@
 import ConfigParser
 import csv
+import datetime
 import time
 
 import numpy as np
-import pylab as P
 
 import util
 
@@ -27,10 +27,34 @@ with open('data/%s' % config.get('data', 'filename'), 'rb') as f:
         vid_id = row[2].strip()
         videos[vid_id] = videos.get(vid_id, dict())
         videos[vid_id][loc] = videos[vid_id].get(loc, list())
-        videos[vid_id][loc].append(date)
+        y,m,d = date.split('-')
+        videos[vid_id][loc].append(datetime.date(int(y), int(m), int(d)))
 
-# Calculate spread
-spread = list()
+# Calculate spread and longevity
+results = list()
+spread_values = list()
+span_values = list()
 for vid_id, countries in videos.iteritems():
-    spread.append((vid_id, len(countries)))
-util.write_results_csv('findstatistics', exp_id, 'spread', spread, ('Video ID', 'Number of Countries'))
+    # Calculate country spread
+    spread = len(countries)
+    spread_values.append(spread)
+    # Calculate longevity span
+    low = min([min(dates) for dates in countries.itervalues()])
+    high = max([max(dates) for dates in countries.itervalues()])
+    span = (high - low).days + 1
+    span_values.append(span)
+    results.append((vid_id, spread, span))
+# Write results csv
+util.write_results_csv('findstatistics', exp_id, 'spread_span', results, ('Video ID', 'Spread', 'Span'))
+# Calculate spread histogram
+spread_hist = list()
+spread_counts, spread_bins = np.histogram(spread_values, range(1,max(spread_values)+1))
+for i, count in enumerate(spread_counts):
+    spread_hist.append((spread_bins[i], count))
+util.write_results_csv('findstatistics', exp_id, 'spread_histogram', spread_hist, ('Spread', 'Count'))
+# Calculate span histogram
+span_hist = list()
+span_counts, span_bins = np.histogram(span_values, range(1, max(span_values)+1))
+for i, count in enumerate(span_counts):
+    span_hist.append((span_bins[i], count))
+util.write_results_csv('findstatistics', exp_id, 'span_histogram', span_hist, ('Span', 'Count'))
