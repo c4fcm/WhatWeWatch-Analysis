@@ -1,5 +1,19 @@
 import csv
+import json
 import os
+
+with open('country_info.json', 'rb') as f:
+    country_list = json.loads(f.read())
+country_info = dict()
+for country in country_list:
+    alpha3 = country['alpha-3'].lower()
+    country_info[alpha3] = {
+        'name': country['name']
+        , 'alpha3': alpha3
+    }
+
+def country_name(alpha3):
+    return country_info[alpha3]['name']
 
 def write_results_csv(experiment, run, filename, data, headers):
     try:
