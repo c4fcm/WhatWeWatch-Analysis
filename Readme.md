@@ -7,7 +7,6 @@ To use this code you must install the following dependencies:
 * sqlalchemy
 * numpy
 * scipy
-* matplotlib
 * http://github.com/elplatt/lda-gibbs-em (as lda/)
 
 ## Contents
