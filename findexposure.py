@@ -48,15 +48,14 @@ sym_ex = nx.Graph()
 sym_ex_dist = nx.Graph()
 
 # Add each country to the graphs
-for country in countries:
-    dir_ex.add_node(country, name=util.country_name(country))
-    sym_ex.add_node(country, name=util.country_name(country))
-    sym_ex_dist.add_node(country, name=util.country_name(country))
+for country_id in range(num_countries):
+    country_code = country_lookup.get_token(country_id)
+    dir_ex.add_node(country_id, name=util.country_name(country_code))
+    sym_ex.add_node(country_id, name=util.country_name(country_code))
+    sym_ex_dist.add_node(country_id, name=util.country_name(country_code))
 
 # Add edges
-n = (num_countries * (num_countries - 1)) / 2
-completed = 0
-last = 0
+print "Calculating exposure for edge weights"
 for head in range(num_countries):
     for tail in range(num_countries):
         if head == tail:
@@ -81,11 +80,64 @@ for head in range(num_countries):
         ex = ((counts[tail,:] + counts[head,:]) * mask).sum() / (total_tail + total_head)
         sym_ex.add_edge(tail, head, weight=ex)
         # Calculate the symmetric exposure distance
-        sym_ex_dist.add_edge(tail, head, weight=(-np.log(ex)))
-        # Print status
-        completed += 1
-        percent = int(100 * completed / n)
-        if percent != last:
-            print "%d%%" % percent
-            last = percent
+        sym_ex_dist.add_edge(tail, head, weight=(-1.0*np.log(ex)))
 
+# Calculate centrality
+
+print "Calculating in-degree centrality"
+dir_ex_in_degree = nx.in_degree_centrality(dir_ex)
+nx.set_node_attributes(dir_ex, 'in-degree centrality', dir_ex_in_degree)
+
+print "Calculating out-degree centrality"
+dir_ex_out_degree = nx.out_degree_centrality(dir_ex)
+nx.set_node_attributes(dir_ex, 'out-degree centrality', dir_ex_out_degree)
+
+print "Caclulating degree centrality"
+sym_ex_degree = nx.degree_centrality(sym_ex)
+nx.set_node_attributes(sym_ex, 'undirected degree centrality', sym_ex_degree)
+
+print "Calculating right eigenvector centrality"
+dir_ex_right_eig = nx.eigenvector_centrality(dir_ex)
+nx.set_node_attributes(dir_ex, 'right eigenvector centrality', dir_ex_right_eig)
+
+print "Calculating left eigenvector centrality"
+dir_ex_left_eig = nx.eigenvector_centrality(dir_ex.reverse())
+nx.set_node_attributes(dir_ex, 'left eigenvector centrality', dir_ex_left_eig)
+
+print "Calculating symmetric eigenvector centrality"
+sym_ex_eig = nx.eigenvector_centrality(sym_ex)
+nx.set_node_attributes(sym_ex, 'undirected eigenvector centrality', sym_ex_eig)
+
+print "Calculating betweenness centrality"
+sym_ex_dist_between = nx.betweenness_centrality(sym_ex_dist, weight='weight', normalized=False)
+nx.set_node_attributes(sym_ex_dist, 'betweenness centrality', sym_ex_dist_between)
+
+# Create csv output
+rows = list()
+for country in countries:
+    country_id = country_lookup.get_id(country)
+    rows.append((
+        country
+        , util.country_name(country)
+        , dir_ex.node[country_id]['in-degree centrality']
+        , dir_ex.node[country_id]['out-degree centrality']
+        , sym_ex.node[country_id]['undirected degree centrality']
+        , dir_ex.node[country_id]['right eigenvector centrality']
+        , dir_ex.node[country_id]['left eigenvector centrality']
+        , sym_ex.node[country_id]['undirected eigenvector centrality']
+        , sym_ex_dist.node[country_id]['betweenness centrality']
+    ))
+
+# Write output
+fields = (
+    'Code'
+    , 'Name'
+    , 'In-Degree Cent'
+    , 'Out-Degree Cent'
+    , 'Degree Cent'
+    , 'Right Eig Cent'
+    , 'Left Eig Cent'
+    , 'Eig Cent'
+    , 'Betweenness Cent')
+util.write_results_csv('findexposure', exp_id, 'countries', rows, fields)
+    
