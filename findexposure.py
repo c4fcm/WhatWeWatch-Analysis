@@ -7,6 +7,7 @@ import time
 import networkx as nx
 import numpy as np
 
+import graph
 import util
 
 # Read config
@@ -14,6 +15,7 @@ config = ConfigParser.RawConfigParser()
 config.read('app.config')
 
 exp_id = time.time()
+print "Beginning %f" % exp_id
 
 # Read data file, save country codes and country-video pairs
 countries = set()
@@ -85,15 +87,15 @@ for head in range(num_countries):
 # Calculate centrality
 
 print "Calculating in-degree centrality"
-dir_ex_in_degree = nx.in_degree_centrality(dir_ex)
+dir_ex_in_degree = graph.weighted_in_degree_centrality(dir_ex)
 nx.set_node_attributes(dir_ex, 'in-degree centrality', dir_ex_in_degree)
 
 print "Calculating out-degree centrality"
-dir_ex_out_degree = nx.out_degree_centrality(dir_ex)
+dir_ex_out_degree = graph.weighted_out_degree_centrality(dir_ex)
 nx.set_node_attributes(dir_ex, 'out-degree centrality', dir_ex_out_degree)
 
 print "Caclulating degree centrality"
-sym_ex_degree = nx.degree_centrality(sym_ex)
+sym_ex_degree = graph.weighted_degree_centrality(sym_ex)
 nx.set_node_attributes(sym_ex, 'undirected degree centrality', sym_ex_degree)
 
 print "Calculating right eigenvector centrality"
