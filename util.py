@@ -2,7 +2,11 @@ import csv
 import json
 import os
 
-with open('country_info.json', 'rb') as f:
+import numpy as np
+
+dirname = os.path.dirname(os.path.realpath(__file__))
+
+with open(os.path.join(dirname, 'country_info.json'), 'rb') as f:
     country_list = json.loads(f.read())
 country_info = dict()
 for country in country_list:
@@ -35,6 +39,37 @@ def write_results_csv(experiment, run, filename, data, headers):
         for row in data:
             f.write(','.join([str(x) for x in row]))
             f.write("\n")
+
+class VideoData(object):
+    
+    def __init__(self, filename):
+        '''Load data from a csv and create useful representations'''
+        # Load basic data
+        self.countries = set()
+        self.videos = set()
+        self.pairs = list()
+        with open(filename, 'rb') as f:
+            reader = csv.reader(f)
+            # Skip header
+            reader.next()
+            # Load rows
+            for row in reader:
+                loc = row[1].strip().lower()
+                vid_id = row[2].strip()
+                self.countries.add(loc)
+                self.videos.add(vid_id)
+                self.pairs.append((loc, vid_id))
+        # Create country and video lookups
+        self.country_lookup = Lookup(sorted(self.countries))
+        self.video_lookup = Lookup(sorted(self.videos))
+        # Calculate counts
+        num_countries = len(self.countries)
+        num_videos = len(self.videos)
+        self.counts = np.zeros((num_countries, num_videos))
+        for loc, vid_id in self.pairs:
+            loc_index = self.country_lookup.get_id(loc)
+            vid_index = self.video_lookup.get_id(vid_id)
+            self.counts[loc_index][vid_index] += 1
 
 class Lookup(object):
     
