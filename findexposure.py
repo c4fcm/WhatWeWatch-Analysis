@@ -10,13 +10,12 @@ import numpy as np
 import graph
 import util
 
-# Read config
-config = ConfigParser.RawConfigParser()
-config.read('app.config')
-
-exp_id = time.time()
-
 def main():
+    # Read config
+    config = ConfigParser.RawConfigParser()
+    config.read('app.config')
+    
+    exp_id = time.time()
     print "Beginning %f" % exp_id
     
     # Read data file, save country codes and country-video pairs

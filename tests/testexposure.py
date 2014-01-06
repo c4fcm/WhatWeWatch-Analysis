@@ -11,6 +11,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 
+import findexposure
 import stubs
 import util
 
@@ -22,6 +23,16 @@ class DataTest(unittest.TestCase):
     
     def test_counts(self):
         nptest.assert_allclose(stubs.counts, data.counts)
+        
+    def test_directed_exposure(self):
+        try:
+            old_country_name = util.country_name
+            util.country_name = stubs.country_name
+            dir_ex = findexposure.directed_exposure(stubs.counts, stubs.country_lookup)
+            for tail, head, d in stubs.dir_ex.edges(data=True):
+                self.assertAlmostEqual(d['weight'], dir_ex.edge[tail][head]['weight'])
+        finally:
+            util.country_name = old_country_name
 
 if __name__ == '__main__':
     unittest.main()
