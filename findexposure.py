@@ -2,6 +2,7 @@ from __future__ import division
 
 import ConfigParser
 import csv
+import sys
 import time
 
 import networkx as nx
@@ -56,6 +57,10 @@ def main():
     sym_ex_dist_between = nx.betweenness_centrality(sym_ex, weight='distance', normalized=False)
     nx.set_node_attributes(sym_ex, 'betweenness centrality', sym_ex_dist_between)
     
+    print "Calculating recalculated betweenness centrality"
+    sym_ex_dist_rebetween = recalculated_betweenness(sym_ex)
+    nx.set_node_attributes(sym_ex, 'recalculated betweenness', sym_ex_dist_rebetween)
+    
     # Create csv output
     rows = list()
     for country in data.countries:
@@ -70,6 +75,7 @@ def main():
             , dir_ex.node[country_id]['left eigenvector centrality']
             , sym_ex.node[country_id]['undirected eigenvector centrality']
             , sym_ex.node[country_id]['betweenness centrality']
+            , sym_ex.node[country_id]['recalculated betweenness']
         ))
     
     # Write output
@@ -82,7 +88,8 @@ def main():
         , 'Right Eig Cent'
         , 'Left Eig Cent'
         , 'Eig Cent'
-        , 'Betweenness Cent')
+        , 'Betweenness Cent'
+        , 'Recalculated Betweenness Cent')
     util.write_results_csv('findexposure', exp_id, 'countries', rows, fields)
 
 def directed_exposure(counts, country_lookup):
@@ -154,6 +161,32 @@ def symmetric_exposure(counts, country_lookup):
             ex = ((counts[tail,:] + counts[head,:]) * mask).sum() / (total_tail + total_head)
             sym_ex.add_edge(tail, head, weight=ex, distance=(-1.0*np.log(ex)))
     return sym_ex
+    
+    
+def recalculated_betweenness(ex):
+    # Copy the graph
+    ex = ex.copy()
+    # Calculate betweenness of full graph
+    between = nx.betweenness_centrality(ex, weight='distance', normalized=False)
+    # Create a copy to track the recalculated betweenness
+    rebetween = between
+    while len(ex.edges()) > 0:
+        # Recalculate betweenness
+        between = nx.betweenness_centrality(ex, weight='distance', normalized=False)
+        # Store recalculated values if they're higher
+        for node, value in between.iteritems():
+            if value > rebetween[node]:
+                rebetween[node] = value
+        # Remove all edges from most central node
+        node, value = sorted(between.items(), key=lambda x: x[1], reverse=True)[0]
+        if (value == 0):
+            # All remaining edges are trivial shortest paths
+            break
+        for tail, head in ex.edges(node):
+            ex.remove_edge(tail, head)
+        sys.stdout.write('.')
+        sys.stdout.flush()
+    return rebetween
     
 if __name__ =='__main__':
     main()
