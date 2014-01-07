@@ -12,6 +12,7 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 
 import findexposure
+import graph
 import stubs
 import util
 
@@ -53,6 +54,20 @@ class DataTest(unittest.TestCase):
                 self.assertAlmostEqual(d['distance'], sym_ex.edge[tail][head]['distance'])
         finally:
             util.country_name = old_country_name
+    
+    def test_in_degree(self):
+        in_degree = [y for x,y in sorted(graph.weighted_in_degree_centrality(stubs.dir_ex).items())]
+        nptest.assert_allclose(in_degree, stubs.in_degree)
+
+    def test_out_degree(self):
+        return
+        out_degree = [y for x,y in sorted(graph.weighted_out_degree_centrality(stubs.dir_ex).items())]
+        nptest.assert_allclose(out_degree, stubs.out_degree)
+
+    def test_degree(self):
+        return
+        degree = [y for x,y in sorted(graph.weighted_degree_centrality(stubs.dir_ex).items())]
+        nptest.assert_allclose(degree, stubs.degree)
 
 if __name__ == '__main__':
     unittest.main()

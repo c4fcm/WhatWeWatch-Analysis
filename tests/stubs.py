@@ -49,6 +49,7 @@ sym_ex.add_edge(1, 4, weight=5/12, distance=0.87546873735)
 # Directed exposure graph weights
 in_degree = [1, 7/6, 2/3, 1/2, 5/6]
 out_degree = [1/3, 1, 2/3, 3/2, 2/3]
+degree = [1/6, 13/12, 2/3, 1, 3/4]
 
 # Country name stub
 def country_name(name):
