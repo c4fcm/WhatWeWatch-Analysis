@@ -39,12 +39,12 @@ dir_ex.add_edge(4, 3, weight=1/6)
 
 # Symmetric exposure graph for test data
 sym_ex = nx.Graph()
-sym_ex.add_edge(0, 1, weight=1/3)
-sym_ex.add_edge(0, 2, weight=1/3)
-sym_ex.add_edge(1, 3, weight=1/3)
-sym_ex.add_edge(2, 3, weight=1/3)
-sym_ex.add_edge(3, 4, weight=1/3)
-sym_ex.add_edge(1, 4, weight=5/12)
+sym_ex.add_edge(0, 1, weight=1/3, distance=1.09861228867)
+sym_ex.add_edge(0, 2, weight=1/3, distance=1.09861228867)
+sym_ex.add_edge(1, 3, weight=1/3, distance=1.09861228867)
+sym_ex.add_edge(2, 3, weight=1/3, distance=1.09861228867)
+sym_ex.add_edge(3, 4, weight=1/3, distance=1.09861228867)
+sym_ex.add_edge(1, 4, weight=5/12, distance=0.87546873735)
 
 # Directed exposure graph weights
 in_degree = [1, 7/6, 2/3, 1/2, 5/6]

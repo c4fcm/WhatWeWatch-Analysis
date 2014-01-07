@@ -44,6 +44,16 @@ class DataTest(unittest.TestCase):
         finally:
             util.country_name = old_country_name
 
+    def test_symmetric_distance(self):
+        try:
+            old_country_name = util.country_name
+            util.country_name = stubs.country_name
+            sym_ex = findexposure.symmetric_exposure(stubs.counts, stubs.country_lookup)
+            for tail, head, d in stubs.sym_ex.edges(data=True):
+                self.assertAlmostEqual(d['distance'], sym_ex.edge[tail][head]['distance'])
+        finally:
+            util.country_name = old_country_name
+
 if __name__ == '__main__':
     unittest.main()
     
