@@ -141,6 +141,9 @@ def symmetric_exposure(counts, country_lookup):
             in_tail = set(np.nonzero(counts[tail,:])[0].tolist())
             in_head = set(np.nonzero(counts[head,:])[0].tolist())
             in_both = list(in_head.intersection(in_tail))
+            # Don't add an edge if they have nothing in common
+            if len(in_both) == 0:
+                continue
             # Create a vector with 1s for videos in the intersection
             mask = np.zeros(num_videos)
             mask[in_both] = 1
