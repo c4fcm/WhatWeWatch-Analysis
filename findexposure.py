@@ -82,11 +82,11 @@ def main():
     fields = (
         'Code'
         , 'Name'
-        , 'In-Degree Cent'
-        , 'Out-Degree Cent'
+        , 'In-Degree Cent p(me|them)'
+        , 'Out-Degree Cent p(them|me)'
         , 'Degree Cent'
-        , 'Right Eig Cent'
-        , 'Left Eig Cent'
+        , 'Right Eig Cent (source-iness)'
+        , 'Left Eig Cent (sink-iness)'
         , 'Eig Cent'
         , 'Betweenness Cent'
         , 'Recalculated Betweenness Cent')
