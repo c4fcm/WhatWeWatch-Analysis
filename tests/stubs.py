@@ -46,11 +46,16 @@ sym_ex.add_edge(2, 3, weight=1/3, distance=1.09861228867)
 sym_ex.add_edge(3, 4, weight=1/3, distance=1.09861228867)
 sym_ex.add_edge(1, 4, weight=5/12, distance=0.87546873735)
 
-# Directed exposure graph weights
+# Exposure graph degrees
 in_degree = [1, 7/6, 2/3, 1/2, 5/6]
 out_degree = [1/3, 1, 2/3, 3/2, 2/3]
-degree = [1/6, 13/12, 2/3, 1, 3/4]
+degree = [2/3, 13/12, 2/3, 1, 3/4]
 
+# Exposure graph eigenvector centralities
+eigenvector_right = [0.1482, 0.4397, 0.2514, 0.7272, 0.4389]
+eigenvector_left = [0.5639, 0.5755, 0.3009, 0.2795, 0.4268]
+eigenvector = [0.3369, 0.5492, 0.3273, 0.5144, 0.4617]
+ 
 # Country name stub
 def country_name(name):
     return name

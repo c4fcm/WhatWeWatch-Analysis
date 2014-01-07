@@ -60,14 +60,24 @@ class DataTest(unittest.TestCase):
         nptest.assert_allclose(in_degree, stubs.in_degree)
 
     def test_out_degree(self):
-        return
         out_degree = [y for x,y in sorted(graph.weighted_out_degree_centrality(stubs.dir_ex).items())]
         nptest.assert_allclose(out_degree, stubs.out_degree)
 
     def test_degree(self):
-        return
-        degree = [y for x,y in sorted(graph.weighted_degree_centrality(stubs.dir_ex).items())]
+        degree = [y for x,y in sorted(graph.weighted_degree_centrality(stubs.sym_ex).items())]
         nptest.assert_allclose(degree, stubs.degree)
+        
+    def test_right_eigenvector(self):
+        eigenvector_right = [y for x,y in sorted(nx.eigenvector_centrality(stubs.dir_ex).items())]
+        nptest.assert_allclose(eigenvector_right, stubs.eigenvector_right, rtol=1e-3)
+    
+    def test_left_eigenvector(self):
+        eigenvector_left = [y for x,y in sorted(nx.eigenvector_centrality(stubs.dir_ex.reverse()).items())]
+        nptest.assert_allclose(eigenvector_left, stubs.eigenvector_left, rtol=1e-3)
+    
+    def test_eigenvector(self):
+        eigenvector = [y for x,y in sorted(nx.eigenvector_centrality(stubs.sym_ex).items())]
+        nptest.assert_allclose(eigenvector, stubs.eigenvector, rtol=1e-3)
 
 if __name__ == '__main__':
     unittest.main()
