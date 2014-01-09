@@ -8,6 +8,7 @@ import time
 import networkx as nx
 import numpy as np
 
+import exposure
 import graph
 import util
 
@@ -109,19 +110,9 @@ def directed_exposure(counts, country_lookup):
         for tail in range(num_countries):
             if head == tail:
                 continue
-            # Calculate intersection
-            in_tail = set(np.nonzero(counts[tail,:])[0].tolist())
-            in_head = set(np.nonzero(counts[head,:])[0].tolist())
-            in_both = list(in_head.intersection(in_tail))
-            # Create a vector with 1s for videos in the intersection
-            mask = np.zeros(num_videos)
-            mask[in_both] = 1
-            # Calculate totals
-            total_tail = counts[tail,:].sum()
-            # Calculate exposure (directed)
-            # Expectation over videos in src of P(v in dest)
-            ex = (counts[tail,:] * mask).sum() / total_tail
-            dir_ex.add_edge(tail, head, weight=ex)
+            ex = exposure.directed(counts[tail], counts[head])
+            if ex > 0:
+                dir_ex.add_edge(tail, head, weight=ex)
     return dir_ex
 
 def symmetric_exposure(counts, country_lookup):
@@ -144,22 +135,9 @@ def symmetric_exposure(counts, country_lookup):
             # Prevent double counting of undirected edges
             if head >= tail:
                 continue
-            # Calculate intersection
-            in_tail = set(np.nonzero(counts[tail,:])[0].tolist())
-            in_head = set(np.nonzero(counts[head,:])[0].tolist())
-            in_both = list(in_head.intersection(in_tail))
-            # Don't add an edge if they have nothing in common
-            if len(in_both) == 0:
-                continue
-            # Create a vector with 1s for videos in the intersection
-            mask = np.zeros(num_videos)
-            mask[in_both] = 1
-            # Calculate totals
-            total_head = counts[head,:].sum()
-            total_tail = counts[tail,:].sum()
-            # Calculate symmetric exposure
-            ex = ((counts[tail,:] + counts[head,:]) * mask).sum() / (total_tail + total_head)
-            sym_ex.add_edge(tail, head, weight=ex, distance=(-1.0*np.log(ex)))
+            ex = exposure.symmetric(counts[tail,:], counts[head,:])
+            if (ex > 0):
+                sym_ex.add_edge(tail, head, weight=ex, distance=(-1.0*np.log(ex)))
     return sym_ex
     
     
