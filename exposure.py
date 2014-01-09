@@ -35,3 +35,6 @@ def symmetric(tail, head):
     # Calculate symmetric exposure
     return ((tail + head) * mask).sum() / (tail.sum() + head.sum())
 
+def distance(tail, head):
+    return -1*np.log(symmetric(tail, head))
+
