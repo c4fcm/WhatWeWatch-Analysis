@@ -21,6 +21,7 @@ class DataTest(unittest.TestCase):
         date_country = dict()
         dates = set()
         countries = set()
+        missing_count = {}
         for date, country, video_id in self.data:
             dates.add(date)
             countries.add(country)
@@ -29,7 +30,12 @@ class DataTest(unittest.TestCase):
         for date in dates:
             for country in countries:
                 count = date_country.get(date,{}).get(country,0)
+                if count < 10:
+                    missing_count[country] = missing_count.get(country,0) + 1
                 self.assertNotEqual((date, country, count), (date, country, 0))
+        print 'Number of days without full data:'
+        for country, count in missing_count.iteritems():
+            print "%s: %d" % (country, count)
 
 if __name__ == '__main__':
     unittest.main()
