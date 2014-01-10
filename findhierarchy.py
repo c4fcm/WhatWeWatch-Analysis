@@ -5,6 +5,7 @@ import csv
 import sys
 import time
 
+import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as pyplot
 import networkx as nx
 import numpy as np
@@ -15,6 +16,7 @@ import scipy.cluster.hierarchy as sphier
 import exposure
 import graph
 import util
+
 
 def main():
     # Read config
@@ -34,9 +36,12 @@ def main():
     d = spdist.pdist(np.array(data.counts), metric=exposure.distance)
     l = sphier.linkage(d, method='average',metric=exposure.distance)
     # Plot
+    f = pyplot.figure()
     p = pyplot.plot()
     sphier.dendrogram(l, labels=labels, color_threshold=1.875)
     pyplot.show()
+    util.create_result_dir('findhierarchy', exp_id)
+    f.savefig('results/findhierarchy/%s/clusters.eps' % exp_id)
 
 if __name__ == '__main__':
     main()

@@ -20,6 +20,16 @@ def country_name(alpha3):
     return country_info[alpha3]['name']
 
 def write_results_csv(experiment, run, filename, data, headers):
+    create_result_dir(experiment, run)
+    path = 'results/%s/%s/%s.csv' % (experiment, run, filename)
+    with open(path, 'wb') as f:
+        f.write(','.join(headers))
+        f.write("\n")
+        for row in data:
+            f.write(','.join([str(x) for x in row]))
+            f.write("\n")
+
+def create_result_dir(experiment, run):
     try:
         os.stat('results')
     except OSError:
@@ -32,13 +42,6 @@ def write_results_csv(experiment, run, filename, data, headers):
         os.stat('results/%s/%s' % (experiment, run))
     except OSError:
         os.mkdir('results/%s/%s' % (experiment, run))
-    path = 'results/%s/%s/%s.csv' % (experiment, run, filename)
-    with open(path, 'wb') as f:
-        f.write(','.join(headers))
-        f.write("\n")
-        for row in data:
-            f.write(','.join([str(x) for x in row]))
-            f.write("\n")
 
 class VideoData(object):
     
