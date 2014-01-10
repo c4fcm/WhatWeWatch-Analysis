@@ -6,7 +6,7 @@ import sys
 import time
 
 import matplotlib; matplotlib.use('Agg')
-import matplotlib.pyplot as pyplot
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import scipy as sp
@@ -36,10 +36,16 @@ def main():
     d = spdist.pdist(np.array(data.counts), metric=exposure.distance)
     l = sphier.linkage(d, method='average',metric=exposure.distance)
     # Plot
-    f = pyplot.figure()
-    p = pyplot.plot()
-    sphier.dendrogram(l, labels=labels, color_threshold=1.875)
-    pyplot.show()
+    f = plt.figure(figsize=(16.5, 10.5))
+    p = plt.plot()
+    sphier.dendrogram(l, labels=labels, color_threshold=1.855)
+    plt.title('Nations clustered by trending video exposure')
+    y = sp.arange(0, 3.8, 0.4)
+    plt.yticks(y)
+    plt.ylabel('$-{\ln}[ E_v[\Pr(v{\in}A{\cap}B|v{\in}A{\cup}B) ]$')
+    plt.tick_params('both', labelsize='12')
+    plt.tight_layout()
+    plt.show()
     util.create_result_dir('findhierarchy', exp_id)
     f.savefig('results/findhierarchy/%s/clusters.eps' % exp_id)
 
