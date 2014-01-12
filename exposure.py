@@ -36,5 +36,76 @@ def symmetric(tail, head):
     return ((tail + head) * mask).sum() / (tail.sum() + head.sum())
 
 def distance(tail, head):
-    return -1*np.log(symmetric(tail, head))
+    return -1*np.log2(symmetric(tail, head))
 
+def linkage(counts):
+    '''Perform hierarchical clustering and return the same structure as
+    scipy.cluster.hierarchy.linkage.'''
+    n, m = counts.shape
+    exposure = initial_exposure(counts)
+    result = np.zeros((2*n - 1, 4))
+    for i in range(n - 1):
+        result[i,3] = 1
+    # Perform clustering
+    forest = set(range(n))
+    clusters = [[x] for x in range(n)]
+    for i in range(n - 1):
+        # Merge the pair of clusters with the highest exposure
+        best = 0
+        for u in forest:
+            for v in forest:
+                if v < u:
+                    continue
+                ex = exposure[u,v]
+                if ex > result[n+i,2]:
+                    result[n+i,0] = u
+                    result[n+i,1] = v
+                    result[n+i,2] = ex
+                    result[n+i,3] = result[u,3] + result[v,3]
+        # Remove merged clusters from forest and add new one
+        u = int(result[n+i,0])
+        v = int(result[n+i,1])
+        forest.remove(u)
+        forest.remove(v)
+        forest.add(n+i)
+        next = len(clusters)
+        clusters.append(clusters[u] + clusters[v])
+        # Calculate distance between new cluster and existing clusters
+        for j in forest:
+            if j != next:
+                ex = cluster_exposure(clusters[next], clusters[j], exposure, counts)
+                exposure[j,next] = ex
+                exposure[next,j] = ex
+    result = np.delete(result, range(n), 0)
+    # Convert from exposure to self-information
+    for i in range(n - 1):
+        result[i,2] = -1*np.log2(result[i,2])
+    return result
+
+def initial_exposure(counts):
+    '''Create the initial exposure array.'''
+    n = counts.shape[0]
+    ex = np.zeros((2*n - 1, 2*n - 1))
+    for tail in range(n):
+        for head in range(tail):
+            d = symmetric(counts[tail,:], counts[head,:])
+            ex[tail,head] = d
+            ex[head,tail] = d
+    return ex
+
+def cluster_exposure(u, v, ex, counts):
+    '''Calculate exposure as:
+    d(u,v) = ( \sum_{i} |u[i]| max_j(d(u[i],v[j])) )
+             ( \sum_{j} |v[j]| max_i(d(u[i],v[j])) )
+             / (|u| + |v|)
+    Where cardinalities are based on the number of videos in a country/cluster.
+    '''
+    nu = sum([counts[i,:].sum() for i in u])
+    nv = sum([counts[j,:].sum() for j in v])
+    ex_v = 0
+    ex_u = 0
+    for tail in v:
+        ex_v += counts[tail,:].sum() * max([ex[tail,head] for head in u])
+    for tail in u:
+        ex_u += counts[tail,:].sum() * max([ex[tail,head] for head in v])
+    return (ex_u + ex_v) / (nu + nv)

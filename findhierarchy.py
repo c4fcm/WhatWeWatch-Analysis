@@ -34,15 +34,17 @@ def main():
     labels = [data.country_lookup.get_token(x) for x in range(data.counts.shape[0])]
     labels = [util.country_name(x) for x in labels]
     d = spdist.pdist(np.array(data.counts), metric=exposure.distance)
-    l = sphier.linkage(d, method='average',metric=exposure.distance)
+    l = sphier.linkage(d, method='single',metric=exposure.distance)
+    #l = exposure.linkage(data.counts)
     # Plot
     f = plt.figure(figsize=(16.5, 10.5))
     p = plt.plot()
-    sphier.dendrogram(l, labels=labels, color_threshold=1.855)
+    sphier.dendrogram(l, labels=labels, color_threshold=2.26)
     plt.title('Nations clustered by trending video exposure')
-    y = sp.arange(0, 3.8, 0.4)
-    plt.yticks(y)
-    plt.ylabel('$-{\ln}[ E_v[\Pr(v{\in}A{\cap}B|v{\in}A{\cup}B) ]$')
+    y = sp.arange(0, 3.2, 0.4)
+    #plt.axis([0, 57, 0, 3.0])
+    #plt.yticks(y)
+    plt.ylabel('Self-information (bits)')
     plt.tick_params('both', labelsize='12')
     plt.tight_layout()
     plt.show()

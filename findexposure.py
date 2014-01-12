@@ -137,7 +137,7 @@ def symmetric_exposure(counts, country_lookup):
                 continue
             ex = exposure.symmetric(counts[tail,:], counts[head,:])
             if (ex > 0):
-                sym_ex.add_edge(tail, head, weight=ex, distance=(-1.0*np.log(ex)))
+                sym_ex.add_edge(tail, head, weight=ex, distance=(-1.0*np.log2(ex)))
     return sym_ex
     
     
