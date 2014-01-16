@@ -17,13 +17,16 @@ import exposure
 import graph
 import util
 
+exp_id = time.time()
+
+# Threshold for defining hierarchical clusters
+hierarchy_threshold = 2.26
 
 def main():
     # Read config
     config = ConfigParser.RawConfigParser()
     config.read('app.config')
     
-    exp_id = time.time()
     print "Beginning %f" % exp_id
     
     # Read data file, save country codes and country-video pairs
@@ -31,15 +34,56 @@ def main():
     data = util.VideoData(filename)
     
     # Calculate dendrogram
-    labels = [data.country_lookup.get_token(x) for x in range(data.counts.shape[0])]
-    labels = [util.country_name(x) for x in labels]
     d = spdist.pdist(np.array(data.counts), metric=exposure.distance)
     l = sphier.linkage(d, method='single',metric=exposure.distance)
     #l = exposure.linkage(data.counts)
+    
     # Plot
+    plot_dendrogram(data, l)
+    
+    # Find average exposure within and across clusters
+    n = data.counts.shape[0]
+    clusters = dict((i, set([i])) for i in range(n))
+    for i, step in enumerate(l):
+        tail, head, dist, size = step
+        if dist > hierarchy_threshold:
+            break;
+        clusters[n + i] = clusters[int(tail)].union(clusters[int(head)])
+        del clusters[int(tail)]
+        del clusters[int(head)]
+    cluster_exposure = []
+    for i, cluster in clusters.iteritems():
+        if len(cluster) < 2:
+            continue
+        # Calculate internal exposure
+        internal = 0
+        m = 0
+        for head in cluster:
+            for tail in cluster:
+                if tail >= head:
+                    continue
+                m += 1
+                internal += exposure.symmetric(data.counts[head], data.counts[tail])
+        internal /= m
+        external = 0
+        m = 0
+        complement = [x for x in range(n) if x not in cluster]
+        for head in cluster:
+            for tail in complement:
+                external += exposure.symmetric(data.counts[head], data.counts[tail])
+                m += 1
+        external /= m
+        names = ';'.join([util.country_name(data.country_lookup.get_token(x)) for x in cluster])
+        cluster_exposure.append((names, internal, external, -1*np.log2(internal), -1*np.log2(external)))
+    fields = ('Countries', 'Mean internal exposure', 'Mean external exposure', 'Internal self-information', 'External self-information')
+    util.write_results_csv('findhierarchy', exp_id, 'cluster_exposure', cluster_exposure, fields)
+
+def plot_dendrogram(data, l):
+    labels = [data.country_lookup.get_token(x) for x in range(data.counts.shape[0])]
+    labels = [util.country_name(x) for x in labels]
     f = plt.figure(figsize=(16.5, 10.5))
     p = plt.plot()
-    sphier.dendrogram(l, labels=labels, color_threshold=2.26)
+    sphier.dendrogram(l, labels=labels, color_threshold=hierarchy_threshold)
     plt.title('Nations clustered by trending video exposure')
     y = sp.arange(0, 3.2, 0.4)
     #plt.axis([0, 57, 0, 3.0])
