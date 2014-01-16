@@ -16,6 +16,9 @@ exp_id = time.time()
 videos = dict()
 
 # Open data file
+all_dates = set()
+all_countries = set()
+all_videos = set()
 with open('data/%s' % config.get('data', 'filename'), 'rb') as f:
     reader = csv.reader(f)
     # Skip header
@@ -25,10 +28,18 @@ with open('data/%s' % config.get('data', 'filename'), 'rb') as f:
         date = row[0].strip()
         loc = row[1].strip()
         vid_id = row[2].strip()
+        all_dates.add(date)
+        all_countries.add(loc)
+        all_videos.add(vid_id)
         videos[vid_id] = videos.get(vid_id, dict())
         videos[vid_id][loc] = videos[vid_id].get(loc, list())
         y,m,d = date.split('-')
         videos[vid_id][loc].append(datetime.date(int(y), int(m), int(d)))
+
+# Find basic counts
+fields = ('Videos', 'Countries', 'Dates')
+counts = [(len(all_videos), len(all_countries), len(all_dates))]
+util.write_results_csv('findstatistics', exp_id, 'counts', counts, fields)
 
 # Calculate spread and longevity
 results = list()
