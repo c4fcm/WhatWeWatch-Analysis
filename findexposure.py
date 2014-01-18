@@ -81,15 +81,15 @@ def main():
     
     # Write output
     fields = (
-        'Code'
-        , 'Name'
+        'Id'
+        , 'Label'
         , 'In-Degree Cent p(me|them)'
         , 'Out-Degree Cent p(them|me)'
-        , 'Degree Cent'
+        , 'Degree Centrality'
         , 'Right Eig Cent (source-iness)'
         , 'Left Eig Cent (sink-iness)'
-        , 'Eig Cent'
-        , 'Betweenness Cent'
+        , 'Eigenvalue Centrality'
+        , 'Betweenness Centrality'
         , 'Recalculated Betweenness Cent')
     util.write_results_csv('findexposure', exp_id, 'countries', rows, fields)
 
