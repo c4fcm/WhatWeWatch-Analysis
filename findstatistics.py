@@ -1,3 +1,5 @@
+from __future__ import division
+
 import ConfigParser
 import csv
 import datetime
@@ -61,11 +63,11 @@ util.write_results_csv('findstatistics', exp_id, 'spread_span', results, ('Video
 spread_hist = list()
 spread_counts, spread_bins = np.histogram(spread_values, range(1,max(spread_values)+1))
 for i, count in enumerate(spread_counts):
-    spread_hist.append((spread_bins[i], count))
+    spread_hist.append((spread_bins[i] / len(all_videos), count))
 util.write_results_csv('findstatistics', exp_id, 'spread_histogram', spread_hist, ('Spread', 'Count'))
 # Calculate span histogram
 span_hist = list()
 span_counts, span_bins = np.histogram(span_values, range(1, max(span_values)+1))
 for i, count in enumerate(span_counts):
-    span_hist.append((span_bins[i], count))
+    span_hist.append((span_bins[i] / len(all_videos), count))
 util.write_results_csv('findstatistics', exp_id, 'span_histogram', span_hist, ('Span', 'Count'))
