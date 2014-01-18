@@ -42,15 +42,28 @@ def main():
     plot_dendrogram(data, l)
     
     # Find average exposure within and across clusters
+    cluster_exposure(data, l)
+
+def plot_dendrogram(data, l):
+    labels = [data.country_lookup.get_token(x) for x in range(data.counts.shape[0])]
+    labels = [util.country_name(x) for x in labels]
+    f = plt.figure(figsize=(16.5, 10.5))
+    p = plt.plot()
+    sphier.dendrogram(l, labels=labels, color_threshold=hierarchy_threshold)
+    plt.title('Nations clustered by trending video exposure')
+    y = sp.arange(0, 3.2, 0.4)
+    #plt.axis([0, 57, 0, 3.0])
+    #plt.yticks(y)
+    plt.ylabel('Self-information (bits)')
+    plt.tick_params('both', labelsize='12')
+    plt.tight_layout()
+    plt.show()
+    util.create_result_dir('findhierarchy', exp_id)
+    f.savefig('results/findhierarchy/%s/clusters.eps' % exp_id)
+
+def cluster_exposure(data, l):
     n = data.counts.shape[0]
-    clusters = dict((i, set([i])) for i in range(n))
-    for i, step in enumerate(l):
-        tail, head, dist, size = step
-        if dist > hierarchy_threshold:
-            break;
-        clusters[n + i] = clusters[int(tail)].union(clusters[int(head)])
-        del clusters[int(tail)]
-        del clusters[int(head)]
+    clusters = get_clusters(l)
     cluster_exposure = []
     for i, cluster in clusters.iteritems():
         if len(cluster) < 2:
@@ -78,22 +91,17 @@ def main():
     fields = ('Countries', 'Mean internal exposure', 'Mean external exposure', 'Internal self-information', 'External self-information')
     util.write_results_csv('findhierarchy', exp_id, 'cluster_exposure', cluster_exposure, fields)
 
-def plot_dendrogram(data, l):
-    labels = [data.country_lookup.get_token(x) for x in range(data.counts.shape[0])]
-    labels = [util.country_name(x) for x in labels]
-    f = plt.figure(figsize=(16.5, 10.5))
-    p = plt.plot()
-    sphier.dendrogram(l, labels=labels, color_threshold=hierarchy_threshold)
-    plt.title('Nations clustered by trending video exposure')
-    y = sp.arange(0, 3.2, 0.4)
-    #plt.axis([0, 57, 0, 3.0])
-    #plt.yticks(y)
-    plt.ylabel('Self-information (bits)')
-    plt.tick_params('both', labelsize='12')
-    plt.tight_layout()
-    plt.show()
-    util.create_result_dir('findhierarchy', exp_id)
-    f.savefig('results/findhierarchy/%s/clusters.eps' % exp_id)
-
+def get_clusters(l):
+    n = l.shape[0] + 1
+    clusters = dict((i, set([i])) for i in range(n))
+    for i, step in enumerate(l):
+        tail, head, dist, size = step
+        if dist > hierarchy_threshold:
+            break;
+        clusters[n + i] = clusters[int(tail)].union(clusters[int(head)])
+        del clusters[int(tail)]
+        del clusters[int(head)]
+    return clusters
+    
 if __name__ == '__main__':
     main()
