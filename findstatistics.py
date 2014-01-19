@@ -63,11 +63,11 @@ util.write_results_csv('findstatistics', exp_id, 'spread_span', results, ('Video
 spread_hist = list()
 spread_counts, spread_bins = np.histogram(spread_values, range(1,max(spread_values)+1))
 for i, count in enumerate(spread_counts):
-    spread_hist.append((spread_bins[i] / len(all_videos), count))
-util.write_results_csv('findstatistics', exp_id, 'spread_histogram', spread_hist, ('Spread', 'Count'))
+    spread_hist.append((spread_bins[i], count / len(all_videos)))
+util.write_results_csv('findstatistics', exp_id, 'spread_histogram', spread_hist, ('Spread', 'Density'))
 # Calculate span histogram
 span_hist = list()
-span_counts, span_bins = np.histogram(span_values, range(1, max(span_values)+1))
+span_counts, span_bins = np.histogram(span_values, range(1,max(span_values)+1))
 for i, count in enumerate(span_counts):
-    span_hist.append((span_bins[i] / len(all_videos), count))
-util.write_results_csv('findstatistics', exp_id, 'span_histogram', span_hist, ('Span', 'Count'))
+    span_hist.append((span_bins[i], count / len(all_videos)))
+util.write_results_csv('findstatistics', exp_id, 'span_histogram', span_hist, ('Span', 'Density'))
