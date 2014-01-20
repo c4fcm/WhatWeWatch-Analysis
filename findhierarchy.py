@@ -47,15 +47,20 @@ def main():
 def plot_dendrogram(data, l):
     labels = [data.country_lookup.get_token(x) for x in range(data.counts.shape[0])]
     labels = [util.country_name(x) for x in labels]
-    f = plt.figure(figsize=(16.5, 10.5))
+    for i, label in enumerate(labels):
+        if labels[i] == 'United Arab Emirates':
+            labels[i] = 'UAE'
+    f = plt.figure(figsize=(7, 4))
     p = plt.plot()
     sphier.dendrogram(l, labels=labels, color_threshold=hierarchy_threshold)
-    plt.title('Nations clustered by trending video exposure')
-    y = sp.arange(0, 3.2, 0.4)
-    #plt.axis([0, 57, 0, 3.0])
-    #plt.yticks(y)
-    plt.ylabel('Self-information (bits)')
-    plt.tick_params('both', labelsize='12')
+    fdtitle = {'fontsize':10}
+    fdaxis = {'fontsize':8}
+    plt.title('Nations clustered by trending video exposure', fontdict=fdtitle)
+    y = sp.arange(1.0, 4.5, 0.5)
+    plt.ylim(0.9, 4.2)
+    plt.yticks(y)
+    plt.ylabel('Self-information (bits)', fontdict=fdaxis)
+    plt.tick_params('both', labelsize='7')
     plt.tight_layout()
     plt.show()
     util.create_result_dir('findhierarchy', exp_id)
