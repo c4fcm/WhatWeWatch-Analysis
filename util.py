@@ -1,4 +1,5 @@
 import csv
+import datetime
 import json
 import os
 
@@ -50,29 +51,45 @@ class VideoData(object):
         # Load basic data
         self.countries = set()
         self.videos = set()
+        self.dates = set()
         self.pairs = list()
+        self.dates_vid_cid = {}
+        self.vids_by_cid = {}
+        
+        # Read data file
         with open(filename, 'rb') as f:
             reader = csv.reader(f)
             # Skip header
             reader.next()
             # Load rows
             for row in reader:
+                date = row[0].strip()
                 loc = row[1].strip().lower()
                 vid_id = row[2].strip()
+                self.dates.add(date)
                 self.countries.add(loc)
                 self.videos.add(vid_id)
                 self.pairs.append((loc, vid_id))
-        # Create country and video lookups
+                self.vids_by_cid[loc] = self.vids_by_cid.get(loc, set()).union(set([vid_id]))
+                # Store video dates by location by video id
+                self.dates_vid_cid[vid_id] = self.dates_vid_cid.get(vid_id, dict())
+                self.dates_vid_cid[vid_id][loc] = self.dates_vid_cid[vid_id].get(loc, list())
+                y,m,d = date.split('-')
+                self.dates_vid_cid[vid_id][loc].append(datetime.date(int(y), int(m), int(d)))
+                
+        # Country and video lookups
         self.country_lookup = Lookup(sorted(self.countries))
         self.video_lookup = Lookup(sorted(self.videos))
+        
         # Calculate counts
         num_countries = len(self.countries)
         num_videos = len(self.videos)
-        self.counts = np.zeros((num_countries, num_videos))
+        counts = np.zeros((num_countries, num_videos))
         for loc, vid_id in self.pairs:
             loc_index = self.country_lookup.get_id(loc)
             vid_index = self.video_lookup.get_id(vid_id)
-            self.counts[loc_index][vid_index] += 1
+            counts[loc_index][vid_index] += 1
+        self.counts = counts
 
 class Lookup(object):
     
