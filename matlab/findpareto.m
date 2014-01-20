@@ -8,7 +8,7 @@
 % http://esapubs.org/Archive/ecol/E089/052/mle_discretepareto.m
 %
 
-exp_id = '1390159603.95'
+exp_id = '1390180489.84'
 
 % Load data
 filename = strcat('../results/findstatistics/', exp_id, '/spread_span.csv');
@@ -37,8 +37,8 @@ set(h, 'OuterPosition', [0 0 9.375 7.03125])
 set(h, 'PaperPosition', [0 0 3.125 2.34375])
 set(hl, 'FontSize', 7)
 set(ht, 'FontSize', 10)
-set(hx, 'FontSize', 10)
-set(hy, 'FontSize', 10)
+set(hx, 'FontSize', 7)
+set(hy, 'FontSize', 7)
 set(gca, 'FontSize', 6)
 set(gca, 'XTick', [1 10])
 set(gca, 'YTick', [0.00001 0.0001 0.001 0.01 0.1 1])
@@ -69,8 +69,8 @@ set(h, 'OuterPosition', [0 0 9.375 7.03125])
 set(h, 'PaperPosition', [0 0 3.125 2.34375])
 set(hl, 'FontSize', 7)
 set(ht, 'FontSize', 10)
-set(hx, 'FontSize', 10)
-set(hy, 'FontSize', 10)
+set(hx, 'FontSize', 7)
+set(hy, 'FontSize', 7)
 set(gca, 'FontSize', 6)
 set(gca, 'XTick', [1 10 100])
 set(gca, 'YTick', [0.00001 0.0001 0.001 0.01 0.1 1])
