@@ -24,6 +24,11 @@ def main():
     filename = 'data/%s' % config.get('data', 'filename')
     data = util.VideoData(filename)
 
+    # Calculate average exposure with other countries
+    mean_ex = {}
+    for cid in data.countries:
+        mean_ex[cid] = mean_exposure(data, cid)
+
     # Create directed exposure, symmetric exposure, symmetric exposure distance
     print "Calculating exposure for edge weights"
     dir_ex = directed_exposure(data.counts, data.country_lookup)
@@ -77,6 +82,7 @@ def main():
             , sym_ex.node[country_id]['undirected eigenvector centrality']
             , sym_ex.node[country_id]['betweenness centrality']
             , sym_ex.node[country_id]['recalculated betweenness']
+            , mean_ex[country]
         ))
     
     # Write output
@@ -90,7 +96,8 @@ def main():
         , 'Left Eig Cent (sink-iness)'
         , 'Eigenvalue Centrality'
         , 'Betweenness Centrality'
-        , 'Recalculated Betweenness Cent')
+        , 'Recalculated Betweenness Cent'
+        , 'Mean Exposure')
     util.write_results_csv('findexposure', exp_id, 'countries', rows, fields)
 
 def directed_exposure(counts, country_lookup):
@@ -165,6 +172,16 @@ def recalculated_betweenness(ex):
         sys.stdout.write('.')
         sys.stdout.flush()
     return rebetween
+    
+def mean_exposure(data, tail):
+    '''Mean exposure of tail with all other countries.'''
+    ex = 0
+    tcid = data.country_lookup.tok2id[tail]
+    for head in data.countries:
+        if head != tail:
+            hcid = data.country_lookup.tok2id[head]
+            ex += exposure.symmetric(data.counts[tcid,:],data.counts[hcid,:])
+    return ex / (len(data.countries) - 1)
     
 if __name__ =='__main__':
     main()
