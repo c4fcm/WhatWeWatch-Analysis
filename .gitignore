@@ -1,4 +1,9 @@
 app.config
+app.config.*
+!app.config.sample
 *.pyc
 .DS_Store
-
+external
+gephi
+lda
+results
