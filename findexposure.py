@@ -29,6 +29,17 @@ def main():
     for cid in data.countries:
         mean_ex[cid] = mean_exposure(data, cid)
 
+    # Create csv wih all edge weights
+    results = []
+    fields = ('Source', 'Target', 'Weight')
+    for tail in range(data.counts.shape[0]):
+        for head in range(tail):
+            ex = exposure.symmetric(data.counts[tail,:], data.counts[head,:])
+            tail_cid = data.country_lookup.id2tok[tail]
+            head_cid = data.country_lookup.id2tok[head]
+            results.append((tail_cid, head_cid, ex))
+    util.write_results_csv('findexposure', exp_id, 'all_edges', results, fields)
+
     # Create directed exposure, symmetric exposure, symmetric exposure distance
     print "Calculating exposure for edge weights"
     dir_ex = directed_exposure(data.counts, data.country_lookup)
@@ -171,6 +182,7 @@ def recalculated_betweenness(ex):
             ex.remove_edge(tail, head)
         sys.stdout.write('.')
         sys.stdout.flush()
+    print
     return rebetween
     
 def mean_exposure(data, tail):
