@@ -57,9 +57,9 @@ def plot_dendrogram(data, l):
     fdaxis = {'fontsize':8}
     plt.title('Nations clustered by trending video exposure', fontdict=fdtitle)
     y = sp.arange(1.0, 4.5, 0.5)
-    plt.ylim(0.9, 4.2)
+    plt.ylim(0.8, 4.2)
     plt.yticks(y)
-    plt.ylabel('Self-information (bits)', fontdict=fdaxis)
+    plt.ylabel('Exposure distance (bits)', fontdict=fdaxis)
     plt.tick_params('both', labelsize='7')
     plt.tight_layout()
     plt.show()
