@@ -20,13 +20,18 @@ videos = dict()
 
 # Open data file
 filename = 'data/%s' % config.get('data', 'filename')
-data = util.VideoData(filename)
+data = util.VideoData.from_csv(filename)
 spread_span = statistics.SpreadSpan(data)
 
 # Find basic counts
 fields = ('Videos', 'Countries', 'Dates')
 counts = [(len(data.videos), len(data.countries), len(data.dates))]
 util.write_results_csv('findstatistics', exp_id, 'counts', counts, fields)
+
+# Print correlation coeff
+r, p = spread_span.pearsonr()
+print r
+print p
 
 # Write video spread and lifespan to csv
 results = []

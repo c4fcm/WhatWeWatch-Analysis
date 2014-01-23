@@ -22,7 +22,7 @@ def main():
     
     # Read data file, save country codes and country-video pairs
     filename = 'data/%s' % config.get('data', 'filename')
-    data = util.VideoData(filename)
+    data = util.VideoData.from_csv(filename)
 
     # Calculate average exposure with other countries
     mean_ex = {}

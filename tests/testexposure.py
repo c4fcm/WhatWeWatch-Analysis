@@ -16,7 +16,7 @@ import graph
 import stubs
 import util
 
-data = util.VideoData('testdata.csv')
+data = util.VideoData.from_csv('testdata.csv')
 
 class DataTest(unittest.TestCase):
     def setUp(self):

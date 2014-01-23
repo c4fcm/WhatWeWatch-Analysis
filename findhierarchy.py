@@ -31,7 +31,7 @@ def main():
     
     # Read data file, save country codes and country-video pairs
     filename = 'data/%s' % config.get('data', 'filename')
-    data = util.VideoData(filename)
+    data = util.VideoData.from_csv(filename)
     
     # Calculate dendrogram
     d = spdist.pdist(np.array(data.counts), metric=exposure.distance)

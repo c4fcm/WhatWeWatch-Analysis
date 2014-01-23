@@ -1,6 +1,8 @@
 from __future__ import division
 
 import numpy as np
+import scipy
+import scipy.stats as spstats
 
 import util
 
@@ -76,3 +78,6 @@ class SpreadSpan(object):
             count = self.data.counts[clu.tok2id[cid],vlu.tok2id[vid]]
             spreads += [spread] * count
         return sum(spreads) / len(spreads)
+    
+    def pearsonr(self):
+        return spstats.pearsonr(self.spread_values, self.span_values)
