@@ -21,11 +21,11 @@ class MigrantTest(unittest.TestCase):
         pass
     
     def test_mig_ex(self):
-        mig_ex = findmigrant.migration_exposure(
-            stubs.migration_stock[0]
-            , stubs.migration_stock[1]
-            , stubs.migration_pop[0]
-            , stubs.migration_pop[1]
+        mig_ex = findmigrant.migrant_exposure_pair(
+            stubs.migration_to_tail
+            , stubs.migration_to_head
+            , stubs.migration_tail_pop
+            , stubs.migration_head_pop
         )
         self.assertAlmostEqual(mig_ex, stubs.migration_ex)
         

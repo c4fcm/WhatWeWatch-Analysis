@@ -17,27 +17,21 @@ import util
 # Target,Source,Migrant Stock
 # aus,arg,14190
 # ...
-migration_filename = 'external/migration_edges.csv'
+migration_filename = 'external/migration-2010/migration_edges.csv'
 
 # External population data, format is:
 # Id,Label,Population
 # dza,Algeria,37062820
 # ...
-population_filename = 'external/population-2010.csv'
-
-# Total migration data, format is:
-# Id,Label,Migrant Stock (dest),Migrant Stock (source)
-# dza,Algeria,242324,1211118
-# ...
-totals_filename = 'external/migration-2010-truncated.csv'
+population_filename = 'external/population-2010/population-2010.csv'
 
 def main():
     
     # Read config
     config = ConfigParser.RawConfigParser()
     config.read('app.config')
-    exp_id = str(time.time())
-    print 'Running findmigrant/%s' % exp_id
+    exp_id = str(time.time().strftime('%Y-%m-%d %H:%M:%S'))
+    print 'Running findpairstats/%s' % exp_id
     
     # Read data file, save country codes and country-video pairs
     filename = 'data/%s' % config.get('data', 'filename')
@@ -46,9 +40,8 @@ def main():
     # Plot and save migration/video exposure comparison
     stock_by_head_tail = load_migration(migration_filename)
     population = load_population(population_filename)
-    totals = load_migration_totals(totals_filename)
     fields = ('Source', 'Target', 'Video Exposure', 'Migration Exposure')
-    results = find_migration(data, stock_by_head_tail, population, totals, exp_id)
+    results = find_migration(data, stock_by_head_tail, population, exp_id)
     util.write_results_csv('findmigrant', exp_id, 'migration_exposure', results, fields)
 
 def load_migration(filename):
@@ -86,7 +79,7 @@ def load_population(filename):
             population[cid] = pop
     return population
 
-def find_migration(data, stock_by_head_tail, population, totals, exp_id):
+def find_migration(data, stock_by_head_tail, population, exp_id):
     exposures = []
     mig_exposures = []
     results = []
@@ -100,11 +93,9 @@ def find_migration(data, stock_by_head_tail, population, totals, exp_id):
             h = data.country_lookup.tok2id[head]
             t = data.country_lookup.tok2id[tail]
             ex = exposure.symmetric(data.counts[t,:], data.counts[h,:])
-            head_stock = stock_by_head_tail[head][tail]
-            tail_stock = stock_by_head_tail[tail][head]
-            head_tot = totals[head]
-            tail_tot = totals[tail]
-            mig_ex = migrant_exposure_pair(tail_stock, head_stock, p_tail, p_head, tail_tot, head_tot)
+            to_head = stock_by_head_tail[head][tail]
+            to_tail = stock_by_head_tail[tail][head]
+            mig_ex = migrant_exposure_pair(to_tail, to_head, p_tail, p_head)
             exposures.append(ex)
             mig_exposures.append(mig_ex)
             results.append((tail, head, ex, mig_ex))
@@ -151,12 +142,8 @@ def find_migration(data, stock_by_head_tail, population, totals, exp_id):
     
     return results
 
-def migrant_exposure_pair(source, target, source_pop, target_pop, source_tot, target_tot):
+def migrant_exposure_pair(source, target, source_pop, target_pop):
     return (target + source) / (source_pop + target_pop)
-
-def migrant_exposure_all(source, target, source_pop, target_pop, source_tot, target_tot):
-    return (source_tot + source) / (source_pop + target_pop)
-
     
 if __name__ == '__main__':
     main()

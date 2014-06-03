@@ -57,9 +57,11 @@ eigenvector_left = [0.5639, 0.5755, 0.3009, 0.2795, 0.4268]
 eigenvector = [0.3369, 0.5492, 0.3273, 0.5144, 0.4617]
 
 # Migration and population test data
-migration_pop = (8389771, 4367800)
-migration_stock = (320, 1464)
-migration_ex = 0.0001398
+migration_head_pop = 8389771
+migration_tail_pop = 4367800
+migration_to_head = 320
+migration_to_tail = 1464
+migration_ex = 1.3984e-4
 
 # Country name stub
 def country_name(name):
