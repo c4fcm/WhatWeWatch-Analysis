@@ -63,6 +63,11 @@ migration_to_head = 320
 migration_to_tail = 1464
 migration_ex = 1.3984e-4
 
+# Language data
+language_usa = set(['english','spanish','hawaiian'])
+language_spain = set(['castilian','spanish','catalan','galician','basque','valencian'])
+language_andorra = set(['catalan', 'french', 'castilian', 'portuguese'])
+
 # Country name stub
 def country_name(name):
     return name

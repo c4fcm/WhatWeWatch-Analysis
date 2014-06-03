@@ -30,11 +30,11 @@ class MigrantTest(unittest.TestCase):
         self.assertAlmostEqual(mig_ex, stubs.migration_ex)
     
     def test_language_true(self):
-        common = language_common_pair(stubs.language_usa, stubs.language_spain)
+        common = findpairstats.language_common_pair(stubs.language_usa, stubs.language_spain)
         self.assertEqual(common, True)
         
     def test_language_false(self):
-        common = language_common_pair(stubs.language_usa, stubs.language_andorra)
+        common = findpairstats.language_common_pair(stubs.language_usa, stubs.language_andorra)
         self.assertEqual(common, False)
         
 if __name__ == '__main__':
