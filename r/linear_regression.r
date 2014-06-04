@@ -1,0 +1,17 @@
+gdp_file = "../results/findpairstats/2014-06-03 16:39:57/pairs.csv"
+gdp = read.csv(gdp_file, header=TRUE)
+attach(gdp)
+model = lm(
+  scale(Video.Exposure)
+  ~ scale(Pop.Rel.Diff)
+  + scale(GDP.Min)
+  + scale(GDP.Max)
+  + scale(GDP.Rel.Diff)
+  + scale(Common.Language)
+  + scale(Migration.Exposure)
+  + scale(Inet.Pen.Min)
+  + scale(Inet.Pen.Max)
+  + scale(Inet.Pen.Rel.Diff)
+  + scale(Distance)
+)
+summary(model)
