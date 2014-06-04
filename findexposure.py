@@ -12,6 +12,17 @@ import exposure
 import graph
 import util
 
+# External internet use data, format is:
+# Id,Label,Internet Users
+# dza,Algeria,4700000
+inet_users_filename = 'external/internet_users/internet_users.csv'
+
+# External population data, format is:
+# Id,Alpha2,Label,Population
+# dza,dz,Algeria,37062820
+# ...
+population_filename = 'external/population-2010/population-2010.csv'
+
 def main():
     # Read config
     config = ConfigParser.RawConfigParser()
@@ -23,6 +34,10 @@ def main():
     # Read data file, save country codes and country-video pairs
     filename = 'data/%s' % config.get('data', 'filename')
     data = util.VideoData.from_csv(filename)
+
+    # Load population and internet penetration data
+    population, labels = load_population(population_filename)
+    inet_users = load_inet_users(inet_users_filename)
 
     # Calculate average exposure with other countries
     mean_ex = {}
@@ -82,6 +97,7 @@ def main():
     rows = list()
     for country in data.countries:
         country_id = data.country_lookup.get_id(country)
+        inet_pen = inet_users[country] / population[country]
         rows.append((
             country
             , util.country_name(country)
@@ -94,6 +110,7 @@ def main():
             , sym_ex.node[country_id]['betweenness centrality']
             , sym_ex.node[country_id]['recalculated betweenness']
             , mean_ex[country]
+            , inet_pen
         ))
     
     # Write output
@@ -108,7 +125,8 @@ def main():
         , 'Eigenvalue Centrality'
         , 'Betweenness Centrality'
         , 'Recalculated Betweenness Cent'
-        , 'Mean Exposure')
+        , 'Mean Exposure'
+        , 'Internet Penetration')
     util.write_results_csv('findexposure', exp_id, 'countries', rows, fields)
 
 def directed_exposure(counts, country_lookup):
@@ -195,5 +213,31 @@ def mean_exposure(data, tail):
             ex += exposure.symmetric(data.counts[tcid,:],data.counts[hcid,:])
     return ex / (len(data.countries) - 1)
     
+def load_inet_users(filename):
+    inet_users = {}
+    with open(filename, 'rU') as f:
+        reader = csv.reader(f)
+        reader.next()
+        for row in reader:
+            cid = row[0].strip().lower()
+            inet_users[cid] = int(row[2].strip().lower().replace(',',''))
+    return inet_users
+
+def load_population(filename):
+    population = {}
+    labels = {}
+    with open(filename, 'rU') as f:
+        reader = csv.reader(f)
+        reader.next()
+        for row in reader:
+            cid = row[0].strip()
+            if (row[3].strip() == ''):
+                pop = 0
+            else:
+                pop = int(row[3].strip())
+            population[cid] = pop
+            labels[cid] = row[2].strip()
+    return population, labels
+
 if __name__ =='__main__':
     main()
