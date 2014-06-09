@@ -2,6 +2,7 @@ from __future__ import division
 
 import ConfigParser
 import csv
+import datetime
 import sys
 import time
 
@@ -28,8 +29,8 @@ def main():
     config = ConfigParser.RawConfigParser()
     config.read('app.config')
     
-    exp_id = time.time()
-    print "Beginning %f" % exp_id
+    exp_id = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    print "Beginning %s" % exp_id
     
     # Read data file, save country codes and country-video pairs
     filename = 'data/%s' % config.get('data', 'filename')
@@ -43,6 +44,7 @@ def main():
     mean_ex = {}
     for cid in data.countries:
         mean_ex[cid] = mean_exposure(data, cid)
+    mean_peers = exposure.mean_peers(data.counts)
 
     # Create csv wih all edge weights
     results = []
@@ -110,6 +112,7 @@ def main():
             , sym_ex.node[country_id]['betweenness centrality']
             , sym_ex.node[country_id]['recalculated betweenness']
             , mean_ex[country]
+            , mean_peers[country_id]
             , inet_pen
         ))
     
@@ -126,6 +129,7 @@ def main():
         , 'Betweenness Centrality'
         , 'Recalculated Betweenness Cent'
         , 'Mean Exposure'
+        , 'Mean Peers'
         , 'Internet Penetration')
     util.write_results_csv('findexposure', exp_id, 'countries', rows, fields)
 

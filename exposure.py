@@ -16,6 +16,21 @@ def directed(tail, head):
     # Expectation over videos in src of P(v in dest)
     return (tail * mask).sum() / tail.sum()
 
+def dichotomize(counts):
+    '''Returns a copy of counts with all nonzero elements set to 1.'''
+    d = np.zeros(counts.shape)
+    d[np.nonzero(counts)] = 1.0
+    return d
+
+def mean_peers(counts):
+    '''The mean number of elements sharing each member.'''
+    d = dichotomize(counts)
+    # Sum number of countries, subtract 1 for self country
+    num_country_v = d.sum(0)
+    num_peer_c = counts.dot((num_country_v - 1))
+    num_vid_c = counts.sum(1)
+    return num_peer_c / num_vid_c
+    
 def symmetric(tail, head):
     '''Expected probability that a member of the union of head and tail will
     be a member of both sets.

@@ -11,6 +11,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 
+import exposure
 import findexposure
 import graph
 import stubs
@@ -54,6 +55,10 @@ class DataTest(unittest.TestCase):
                 self.assertAlmostEqual(d['distance'], sym_ex.edge[tail][head]['distance'])
         finally:
             util.country_name = old_country_name
+    
+    def test_mean_peers(self):
+        peers = exposure.mean_peers(stubs.counts)
+        nptest.assert_allclose(peers, stubs.mean_peers)
     
     def test_in_degree(self):
         in_degree = [y for x,y in sorted(graph.weighted_in_degree_centrality(stubs.dir_ex).items())]

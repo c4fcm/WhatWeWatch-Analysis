@@ -63,6 +63,9 @@ migration_to_head = 320
 migration_to_tail = 1464
 migration_ex = 1.3984e-4
 
+# Mean number of peers
+mean_peers = np.array([2, 6, 4, 9, 4]) / 6.0
+
 # Language data
 language_usa = set(['english','spanish','hawaiian'])
 language_spain = set(['castilian','spanish','catalan','galician','basque','valencian'])
