@@ -14,7 +14,7 @@ import util
 config = ConfigParser.RawConfigParser()
 config.read('app.config')
 
-exp_id = time.time()
+exp_id = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
 videos = dict()
 
