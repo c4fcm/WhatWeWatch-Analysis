@@ -12,6 +12,19 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 import util
 
+# Sample raw country, video, date data
+raw = [
+    ('2014-07-01', 'usa', 'A')
+    , ('2014-07-02', 'can', 'A')
+    , ('2014-07-03', 'aus', 'A')
+    , ('2014-07-01', 'usa', 'B')
+    , ('2014-07-08', 'usa', 'B')
+    , ('2014-07-01', 'usa', 'C')
+    , ('2014-07-09', 'usa', 'C')
+]
+span_by_vid = { 'A': 3.0, 'B': 8.0, 'C': 1.0 }
+spread_by_vid = { 'A': 3, 'B': 1, 'C': 1 }
+
 # Country-video counts for test data
 counts = np.array([
     [1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],

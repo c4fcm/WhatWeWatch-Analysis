@@ -28,9 +28,20 @@ class SpreadSpan(object):
     
     def span(self, dates_by_cid):
         '''Lifespan of a video.'''
-        low = min([min(dates) for dates in dates_by_cid.itervalues()])
-        high = max([max(dates) for dates in dates_by_cid.itervalues()])
-        return (high - low).days + 1
+        dates = sorted(set.union(*[set(dates) for dates in dates_by_cid.itervalues()]), reverse=True)
+        high = low = dates.pop()
+        # Videos may trend multiple times
+        spans = []
+        while dates:
+            d = dates.pop()
+            days_skipped = (d - high).days - 1
+            lifespan = (high - low).days + 1
+            if days_skipped > max([lifespan, 6]):
+                spans.append(lifespan)
+                low = d
+            high = d
+        spans.append((high - low).days + 1)
+        return float(sum(spans) / len(spans))
 
     def spread(self, dates_by_cid):
         return len(dates_by_cid)
