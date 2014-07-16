@@ -8,7 +8,7 @@
 % http://esapubs.org/Archive/ecol/E089/052/mle_discretepareto.m
 %
 
-exp_id = '1390180489.84'
+exp_id = '2014-07-16 13:18:16'
 
 % Load data
 filename = strcat('../results/findstatistics/', exp_id, '/spread_span.csv');
@@ -18,8 +18,9 @@ span = data(:,2);
 
 % Plot spread data
 [f x] = hist(spread, 1:max(spread));
-h = figure;
-loglog(x, f/sum(f), 'o')
+h = figure
+subplot(1,2,1);
+loglog(x, f/sum(f), 'o', 'MarkerSize', 2)
 hold on;
 
 % Fit and plot pareto
@@ -27,31 +28,24 @@ xx = linspace(1, max(spread), 10000);
 shape = mle_discretepareto(spread);
 strcat('Global Reach Pareto shape: ', num2str(shape))
 loglog(xx, xx.^shape ./ zeta(-shape));
-hx = xlabel('Global Reach (nations)');
-hy = ylabel('Frequency');
-ht = title('Global Reach of Trending Videos');
-hl = legend('Observed', strcat('ML Pareto'));
 grid on;
-set(h, 'Units', 'inches')
-set(h, 'OuterPosition', [0 0 9.375 7.03125])
-set(h, 'PaperPosition', [0 0 3.125 2.34375])
-set(hl, 'FontSize', 7)
-set(ht, 'FontSize', 10)
-set(hx, 'FontSize', 7)
-set(hy, 'FontSize', 7)
-set(gca, 'FontSize', 6)
 set(gca, 'XTick', [1 10])
 set(gca, 'YTick', [0.00001 0.0001 0.001 0.01 0.1 1])
 axis([1 60 0.00001 1])
-
-% Save figure
-saveas(h, strcat('../results/findstatistics/', exp_id, '/spread.fig'));
-saveas(h, strcat('../results/findstatistics/', exp_id, '/spread.eps'));
+hx = xlabel('Global Reach (nations)');
+hy = ylabel('Frequency');
+ht = title('Global Reach of Trending Videos');
+set(ht, 'FontSize', 6)
+set(hx, 'FontSize', 6)
+set(hy, 'FontSize', 6)
+set(gca, 'FontSize', 5)
+%hl = legend('Observed', strcat('ML Pareto'));
+%set(hl, 'FontSize', 4)
 
 % Plot span data
 [f x] = hist(span, 1:max(span));
-h = figure;
-loglog(x, f/sum(f), 'o')
+subplot(1,2,2);
+loglog(x, f/sum(f), 'o', 'Markersize', 2)
 hold on;
 
 % Fit and plot pareto
@@ -59,23 +53,24 @@ xx = linspace(1, max(span), 10000);
 shape = mle_discretepareto(span);
 strcat('Lifespan Pareto shape: ', num2str(shape))
 loglog(xx, xx.^shape ./ zeta(-shape));
+grid on;
+set(gca, 'XTick', [1 10 100])
+set(gca, 'YTick', [0.00001 0.0001 0.001 0.01 0.1 1])
+axis([1 31 0.00001 1])
 hx = xlabel('Lifespan (days)');
 hy = ylabel('Frequency');
 ht = title('Lifespan of Trending Videos');
-hl = legend('Observed', strcat('ML Pareto'));
-grid on;
-set(h, 'Units', 'inches')
-set(h, 'OuterPosition', [0 0 9.375 7.03125])
-set(h, 'PaperPosition', [0 0 3.125 2.34375])
-set(hl, 'FontSize', 7)
-set(ht, 'FontSize', 10)
-set(hx, 'FontSize', 7)
-set(hy, 'FontSize', 7)
-set(gca, 'FontSize', 6)
-set(gca, 'XTick', [1 10 100])
-set(gca, 'YTick', [0.00001 0.0001 0.001 0.01 0.1 1])
-axis([1 200 0.00001 1])
+set(ht, 'FontSize', 6)
+set(hx, 'FontSize', 6)
+set(hy, 'FontSize', 6)
+set(gca, 'FontSize', 5)
+%hl = legend('Observed', strcat('ML Pareto'));
+%set(hl, 'FontSize', 4)
 
 % Save figure
-saveas(h, strcat('../results/findstatistics/', exp_id, '/span.fig'));
-saveas(h, strcat('../results/findstatistics/', exp_id, '/span.eps'));
+%set(h, 'Units', 'pixels')
+%set(h, 'OuterPosition', [0 0 781 325])
+%set(h, 'PaperSize', [3.3 1.4])
+set(h, 'PaperPosition', [0 0 3.7 1.5])
+saveas(h, strcat('../results/findstatistics/', exp_id, '/spread-span.fig'));
+saveas(h, strcat('../results/findstatistics/', exp_id, '/spread-span.eps'));
