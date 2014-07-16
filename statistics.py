@@ -57,7 +57,7 @@ class SpreadSpan(object):
     def span_hist(self):
         results = list()
         values = self.span_values
-        counts, bins = np.histogram(values, range(1,max(values)+1))
+        counts, bins = np.histogram(values, np.arange(0.5,round(max(values))+0.5))
         for i, count in enumerate(counts):
             results.append((bins[i], count / len(self.data.videos)))
         return results
