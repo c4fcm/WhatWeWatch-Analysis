@@ -30,8 +30,8 @@ util.write_results_csv('findstatistics', exp_id, 'counts', counts, fields)
 
 # Print correlation coeff
 r, p = spread_span.pearsonr()
-print r
-print p
+print "Pearson R: %f" % (r)
+print "p value: %f" % p
 
 # Write video spread and lifespan to csv
 results = []
