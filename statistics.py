@@ -25,6 +25,12 @@ class SpreadSpan(object):
             self.span_values.append(span)
             self.span_by_vid[vid] = span
             self.spread_by_vid[vid] = spread
+        self.min_spread = round(min(self.spread_values))
+        self.max_spread = round(max(self.spread_values))
+        self.min_span = round(min(self.span_values))
+        self.max_span = round(max(self.span_values))
+        self.spread_bins = self.max_spread - self.min_spread + 1
+        self.span_bins = self.max_span - self.min_span + 1
     
     def span(self, dates_by_cid):
         '''Lifespan of a video.'''
@@ -49,7 +55,7 @@ class SpreadSpan(object):
     def spread_hist(self):
         results = list()
         values = self.spread_values
-        counts, bins = np.histogram(values, range(1,max(values)+1))
+        counts, bins = np.histogram(values, np.arange(0.5,max(values)+0.5))
         for i, count in enumerate(counts):
             results.append((bins[i], count / len(self.data.videos)))
         return results
@@ -61,6 +67,20 @@ class SpreadSpan(object):
         for i, count in enumerate(counts):
             results.append((bins[i], count / len(self.data.videos)))
         return results
+    
+    def bin_edges(self):
+        xedges = np.arange(self.min_spread - 0.5, self.max_spread + 1.5)
+        yedges = np.arange(self.min_span - 0.5, self.max_span + 1.5)
+        return (xedges, yedges)
+    
+    def spread_span_hist(self):
+        xedges, yedges = self.bin_edges()
+        h, xe, ye = np.histogram2d(
+            self.spread_values
+            , self.span_values
+            , [xedges, yedges]
+        )
+        return h
     
     def mean_span(self):
         return sum(self.span_values) / len(self.span_values)
