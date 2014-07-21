@@ -82,6 +82,20 @@ class SpreadSpan(object):
         )
         return h
     
+    def country_spread_span_hist(self, country):
+        xedges, yedges = self.bin_edges()
+        spread_values = list()
+        span_values = list()
+        for vid in self.data.vids_by_cid[country]:
+            spread_values.append(self.spread_by_vid[vid])
+            span_values.append(self.span_by_vid[vid])
+        h, xe, ye = np.histogram2d(
+            spread_values
+            , span_values
+            , [xedges, yedges]
+        )
+        return h
+    
     def mean_span(self):
         return sum(self.span_values) / len(self.span_values)
     
