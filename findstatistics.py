@@ -4,9 +4,11 @@ import ConfigParser
 import csv
 import datetime
 import math
+import random
 import time
 
-import matplotlib.pyplot as plt;
+import matplotlib; matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import numpy as np
 
 import statistics
@@ -69,29 +71,40 @@ for loc in data.countries:
     results.append((loc, spread, span))
 util.write_results_csv('findstatistics', exp_id, 'country_spread_span', results, fields)
 
+# Create spread/span histogram figure
+#fig = plt.figure(figsize=(3.3,1.5))
+fig = plt.figure(figsize=(6.6,3))
+
 # Calculate 2d histogram
+fontsize = 10
+ticksize = 8
 h = spread_span.spread_span_hist()
 h = np.log(h + 1)
-fig = plt.figure(figsize=(7,3))
 ax = fig.add_subplot(121)
+ax.tick_params(axis='both', which='major', labelsize=ticksize)
 xedges, yedges = spread_span.bin_edges()
 x, y = np.meshgrid(xedges, yedges)
-ax.pcolormesh(x, y, h.transpose(), cmap='gray')
+ax.pcolormesh(x, y, h.transpose(), cmap='gray', edgecolor='face')
 ax.set_xscale('log')
 ax.set_yscale('log')
-ax.set_xlabel('Global Spread (nations)')
-ax.set_ylabel('Lifespan (days)')
-ax.set_title('Video Spread/Lifespan Histogram')
+ax.set_xlabel('Global Spread (nations)', fontsize=fontsize)
+ax.set_ylabel('Lifespan (days)', fontsize=fontsize)
+ax.set_title('Video Spread/Lifespan Histogram', fontsize=fontsize)
 ax.set_ylim([min(yedges), max(yedges)])
 ax.set_xlim([min(yedges), max(yedges)])
 ax.set_aspect('equal')
 
 # Plot mean spread/span by countries
 ax = fig.add_subplot(122)
-plt.plot(country_spreads, country_spans, 'o')
-ax.set_ylim([0, math.ceil(max(country_spans))])
-ax.set_xlim([0, math.ceil(max(country_spreads))])
-ax.set_xlabel('Mean Global Spread (nations)')
-ax.set_ylabel('Mean Lifespan (days)')
-ax.set_title('Mean Spread/Lifespan by Nation')
-plt.show()
+ax.tick_params(axis='both', which='major', labelsize=ticksize)
+plt.plot(country_spreads, country_spans, '.', markersize=2)
+ax.set_aspect('equal')
+lim = max(math.ceil(max(country_spans)), math.ceil(max(country_spreads)))
+ax.set_ylim([0, lim])
+ax.set_xlim([0, lim])
+ax.set_xlabel('Mean Global Spread (nations)', fontsize=fontsize)
+ax.set_ylabel('Mean Lifespan (days)', fontsize=fontsize)
+ax.set_title('Mean Spread/Lifespan by Nation', fontsize=fontsize)
+plt.tight_layout(pad=0.25, w_pad=0.0, h_pad=0.0)
+util.create_result_dir('findstatistics', exp_id)
+fig.savefig('results/findstatistics/%s/spread-span-hist.eps' % exp_id)
