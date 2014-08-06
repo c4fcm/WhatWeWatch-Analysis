@@ -27,10 +27,39 @@ def main():
     data = util.VideoData.from_csv(filename)
     
     # Plot and save exposure histograms
-    results = find_pair_stats(data, exp_id)
+    f = plt.figure(figsize=(3.3, 1.5))
+    plt.subplot('121')
+    plot_edge_histogram(data, exp_id)
+    plt.subplot('122')
+    plot_country_histogram(data, exp_id)
+    plt.show()
+    plt.tight_layout(pad=0.25, w_pad=0.5, h_pad=0.0)
+    util.create_result_dir('findexposurehist', exp_id)
+    f.savefig('results/findexposurehist/%s/exposurehist.eps' % (exp_id))
 
-def find_pair_stats(data, exp_id):
+def plot_edge_histogram(data, exp_id):
     countries = data.countries
+    exposures = []
+    for country in countries:
+        for target in countries:
+            # Find video exposure
+            h = data.country_lookup.tok2id[country]
+            t = data.country_lookup.tok2id[target]
+            # Prevent double-counting
+            if h > t:
+                exposures.append(exposure.symmetric(data.counts[t,:], data.counts[h,:]))
+    # Plot
+    fdtitle = {'fontsize':6}
+    fdaxis = {'fontsize':4}    
+    plt.hist(exposures, bins=20)
+    hx = plt.xlabel('Co-affiliation', fontdict=fdaxis)
+    hy = plt.ylabel('Count', fontdict=fdaxis)
+    ht = plt.title('Nation-Nation Co-Affiliation', fontdict=fdtitle)
+    plt.tick_params('both', labelsize='4')
+
+def plot_country_histogram(data, exp_id):
+    countries = data.countries
+    means = []
     for country in countries:
         exposures = []
         for target in countries:
@@ -40,20 +69,15 @@ def find_pair_stats(data, exp_id):
             h = data.country_lookup.tok2id[country]
             t = data.country_lookup.tok2id[target]
             exposures.append(exposure.symmetric(data.counts[t,:], data.counts[h,:]))
-        # Plot
-        util.create_result_dir('findexposurehist', exp_id)
-        fdtitle = {'fontsize':10}
-        fdaxis = {'fontsize':8}
-        
-        f = plt.figure(figsize=(3.3125, 3.3125))
-        plt.show()
-        plt.hist(exposures, bins=20)
-        hx = plt.xlabel('Video Exposure', fontdict=fdaxis)
-        hy = plt.ylabel('Count', fontdict=fdaxis)
-        ht = plt.title('Exposure Histogram (%s)' % country, fontdict=fdtitle)
-        plt.tick_params('both', labelsize='7')
-        plt.tight_layout()
-        f.savefig('results/findexposurehist/%s/exposurehist-%s.eps' % (exp_id, country))
+        means.append(sum(exposures) / len(exposures))
+    # Plot
+    fdtitle = {'fontsize':6}
+    fdaxis = {'fontsize':4}    
+    plt.hist(exposures, bins=10)
+    hx = plt.xlabel('Mean Co-affiliation', fontdict=fdaxis)
+    hy = plt.ylabel('Count', fontdict=fdaxis)
+    ht = plt.title('National Mean Co-Affiliation', fontdict=fdtitle)
+    plt.tick_params('both', labelsize='4')
 
 if __name__ == '__main__':
     main()
