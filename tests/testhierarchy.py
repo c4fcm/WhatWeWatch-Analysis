@@ -34,10 +34,12 @@ class HierarchyTest(unittest.TestCase):
     def test_vid_pdist(self):
         pdist = hierarchy.pdist(data.counts.transpose()).todense().tolist()
         true_pdist = stubs.vid_pdist.todense().tolist()
-        print pdist
-        print true_pdist
         nptest.assert_allclose(pdist, true_pdist)
-        
+    
+    def test_linkage(self):
+        linkage = hierarchy.linkage(stubs.nat_pdist).tolist()
+        true_linkage = stubs.linkage.tolist()
+        nptest.assert_allclose(linkage, true_linkage)
 if __name__ == '__main__':
     unittest.main()
     

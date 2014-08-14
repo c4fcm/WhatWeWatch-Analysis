@@ -88,6 +88,14 @@ vid_pdist[hierarchy.pdist_index(15,12,13), 0] = -1
 vid_pdist[hierarchy.pdist_index(15,12,14), 0] = -1
 vid_pdist[hierarchy.pdist_index(15,13,14), 0] = -1
 
+# Nation clustering result
+linkage = np.array([
+    [1, 4, -5/12, 2]
+    , [0, 2, -1/3, 2]
+    , [3, 5, -1/3, 3]
+    , [6, 7, -1/3, 5]
+])
+
 # Directed exposure graph for test data
 dir_ex = nx.DiGraph()
 dir_ex.add_edge(0, 1, weight=1/6)

@@ -1,4 +1,5 @@
 
+import math
 import numpy as np
 import scipy as sp
 import scipy.misc as spmisc
@@ -45,31 +46,30 @@ def linkage(dist):
     # Columns of linkage tree matrix
     SRC_A, SRC_B, DIST, NUM_OBS = (0, 1, 2, 3)
     # Determine number of nodes and create linkage matrix
-    n = int(math.ceil(math.sqrt(len(dist) * 2)))
+    n = int(round((1 + math.sqrt(1 + 8*(dist.shape[0])))/2))
     l = np.zeros((n - 1, 4))
     # Create clusters
     clusters = dict((x, set([x])) for x in range(n))
     for new_index in range(n, 2*n - 1):
-        for low in clusters.iterkeys():
-            for high in clusters.iterkeys():
-                if low >= high:
-                    continue
-                dist_index = (
-                    spmisc.comb(n, 2, exact=True)
-                    - spmisc.comb(n - low, 2, exact=True)
-                    + (high - low - 1)
-                )
-                d = dist[dist_index,0] 
-                try:
-                    if d < best:
-                        best, best_low, best_high = d, low, high
-                except NameError:
-                    best, best_low, best_high = d, low, high
+        keys = sorted(clusters.keys())
+        for low in keys:
+            for high in [key for key in keys if key > low]:
+                low_points = clusters[low]
+                high_points = clusters[high]
+                for lp in low_points:
+                    for hp in high_points:
+                        d = dist[pdist_index(n, lp, hp),0] 
+                        try:
+                            if d < best:
+                                best, best_low, best_high = d, low, high
+                        except NameError:
+                            best, best_low, best_high = d, low, high
         # Merge clusters
         clusters[new_index] = clusters[best_low].union(clusters[best_high])
         del clusters[best_low]
         del clusters[best_high]
         # Update linkage tree
+        print "Merging %d and %d" % (best_low, best_high)
         l[new_index - n, SRC_A] = best_low
         l[new_index - n, SRC_B] = best_high
         l[new_index - n, DIST] = best
