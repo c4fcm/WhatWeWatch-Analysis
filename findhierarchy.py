@@ -5,19 +5,22 @@ import csv
 import sys
 import time
 
+import math
 import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import scipy as sp
-import scipy.spatial.distance as spdist
 import scipy.cluster.hierarchy as sphier
+import scipy.misc as spmisc
+import scipy.spatial.distance as spdist
 
 import exposure
 import graph
+import hierarchy
 import util
 
-exp_id = time.time()
+exp_id = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
 # Threshold for defining hierarchical clusters
 hierarchy_threshold = 2.26
@@ -33,7 +36,7 @@ def main():
     filename = 'data/%s' % config.get('data', 'filename')
     data = util.VideoData.from_csv(filename)
     
-    # Calculate dendrogram
+    # Calculate nation dendrogram
     d = spdist.pdist(np.array(data.counts), metric=exposure.distance)
     l = sphier.linkage(d, method='single',metric=exposure.distance)
     #l = exposure.linkage(data.counts)
@@ -43,6 +46,14 @@ def main():
     # Find average exposure within and across clusters
     cluster_exposure(data, l)
     save_linkage_tree(data, l)
+    
+    # Calculate video dendrogram
+    print "Calculating video co-affiliation"
+    d = hierarchy.pdist(np.array(data.counts[:,1:100]).transpose())
+    print "Clustering videos"
+    l = hierarchy.linkage(d)
+    print "Writing confusion matrix"
+    save_confusion_matrix(data, l)
 
 def plot_dendrogram(data, l):
     labels = [data.country_lookup.get_token(x) for x in range(data.counts.shape[0])]
@@ -107,6 +118,7 @@ def save_clusters(data, l):
     util.write_results_csv('findhierarchy', exp_id, 'clusters', results, fields)
     
 def save_linkage_tree(data, l):
+    '''Write the edges in the linkage tree to a file.'''
     results = []
     fields = ('Source', 'Target', 'Type', 'Id', 'Label', 'Weight')
     # Find the source/target for each shortest path
@@ -131,16 +143,57 @@ def save_linkage_tree(data, l):
     util.write_results_csv('findhierarchy', exp_id, 'shortest_path_tree_edges', results, fields)
 
 def get_clusters(l):
+    '''Return a dict of clusters (lists of nation ids).'''
+    # There are m+1 nodes for a linkage tree with m edges
     n = l.shape[0] + 1
     clusters = dict((i, set([i])) for i in range(n))
     for i, step in enumerate(l):
         tail, head, dist, size = step
+        # Stop when we reach a pre-defined threshold
         if dist > hierarchy_threshold:
             break;
+        # Merge two clusters, creating a new one and deleting the originals
         clusters[n + i] = clusters[int(tail)].union(clusters[int(head)])
         del clusters[int(tail)]
         del clusters[int(head)]
     return clusters
+    
+def save_confusion_matrix(data, l):
+    '''Calculate and save a confusion matrix between video clusters and nations.'''
+    num_nations = len(data.countries)
+    num_videos = len(data.videos)
+    # There are m+1 nodes for a linkage tree with m edges
+    n = l.shape[0] + 1
+    clusters = dict((i, set([i])) for i in range(n))
+    for i, step in enumerate(np.array(l)):
+        tail, head, dist, size = step
+        # Stop when we have the same number of clusters as countries
+        if len(clusters) <= num_nations:
+            break;
+        # Merge two clusters, creating a new one and deleting the originals
+        clusters[n + i] = clusters[int(tail)].union(clusters[int(head)])
+        del clusters[int(tail)]
+        del clusters[int(head)]
+    # Find number of times each nation has trended a video in a cluster
+    cluster_videos = np.zeros((num_nations, num_videos))
+    vcounts = data.counts.transpose() # [vid][cid]
+    for cluster, videos in enumerate(clusters.itervalues()):
+        for video in videos:
+            cluster_videos[cluster, video] = sum(vcounts[video,:])
+    # Label results
+    fields = ['Id']
+    for nation in range(num_nations):
+        fields.append(data.country_lookup.id2tok[nation])
+    results = list()
+    for cluster in range(num_nations):
+        result = ['Cluster %d' % cluster]
+        tail = cluster_videos[cluster,:]
+        for nation in range(num_nations):
+            head = data.counts[nation,:]
+            coaffiliation = exposure.symmetric(tail, head)
+            result.append(coaffiliation)
+        results.append(result)
+    util.write_results_csv('findhierarchy', exp_id, 'video_confusion', results, fields)
     
 if __name__ == '__main__':
     main()
