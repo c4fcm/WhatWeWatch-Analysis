@@ -41,6 +41,8 @@ def symmetric(tail, head):
     in_tail = set(np.nonzero(tail)[0].tolist())
     in_head = set(np.nonzero(head)[0].tolist())
     in_both = list(in_head.intersection(in_tail))
+    if len(in_both) == 0:
+        return 0
     # Don't add an edge if they have nothing in common
     if len(in_both) == 0:
         return 0

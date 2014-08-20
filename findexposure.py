@@ -6,8 +6,11 @@ import datetime
 import sys
 import time
 
+import matplotlib; matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+import scipy.stats as spstats
 
 import exposure
 import graph
@@ -132,6 +135,23 @@ def main():
         , 'Mean Peers'
         , 'Internet Penetration')
     util.write_results_csv('findexposure', exp_id, 'countries', rows, fields)
+    
+    # Plot mean co-affiliation vs eigenvalue centrality
+    centrality = []
+    coaffiliation = []
+    for country in data.countries:
+        country_id = data.country_lookup.get_id(country)
+        coaffiliation.append(mean_ex[country])
+        centrality.append(sym_ex.node[country_id]['undirected eigenvector centrality'])
+    print 'Eigenvalue centrality ~ Mean Co-Affiliation:'
+    print spstats.pearsonr(centrality, coaffiliation)
+    f = plt.figure(figsize=(3.3,2.5))
+    plot_centrality_coaff(centrality, coaffiliation)
+    plt.show()
+    plt.tight_layout(pad=0.25, w_pad=0.5, h_pad=0.0)
+    util.create_result_dir('findexposure', exp_id)
+    f.savefig('results/findexposure/%s/centrality-coaffiliation.eps' % (exp_id))
+    
 
 def directed_exposure(counts, country_lookup):
     '''Calculate the directed exposure graph of a (country, video) count matrix.
@@ -242,6 +262,15 @@ def load_population(filename):
             population[cid] = pop
             labels[cid] = row[2].strip()
     return population, labels
+
+def plot_centrality_coaff(centrality, coaffiliation):
+    fdtitle = {'fontsize':8}
+    fdaxis = {'fontsize':6}    
+    plt.plot(centrality, coaffiliation, 'o')
+    hx = plt.xlabel('Eigenvalue Centrality', fontdict=fdaxis)
+    hy = plt.ylabel('Mean Co-Affiliation', fontdict=fdaxis)
+    ht = plt.title('Mean Co-Affiliation vs. Eigenvalue Centrality', fontdict=fdtitle)
+    plt.tick_params('both', labelsize='6')
 
 if __name__ =='__main__':
     main()
