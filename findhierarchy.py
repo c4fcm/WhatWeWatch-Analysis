@@ -2,6 +2,7 @@ from __future__ import division
 
 import ConfigParser
 import csv
+import datetime
 import sys
 import time
 
@@ -18,6 +19,7 @@ import scipy.spatial.distance as spdist
 import exposure
 import graph
 import hierarchy
+import slink
 import util
 
 exp_id = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -30,7 +32,7 @@ def main():
     config = ConfigParser.RawConfigParser()
     config.read('app.config')
     
-    print "Beginning %f" % exp_id
+    print "Beginning %s" % exp_id
     
     # Read data file, save country codes and country-video pairs
     filename = 'data/%s' % config.get('data', 'filename')
@@ -48,10 +50,10 @@ def main():
     save_linkage_tree(data, l)
     
     # Calculate video dendrogram
-    print "Calculating video co-affiliation"
-    d = hierarchy.pdist(np.array(data.counts[:,1:100]).transpose())
     print "Clustering videos"
-    l = hierarchy.linkage(d)
+    p, b = slink.linkage(data.counts.transpose(), lambda x,y: 1.0 - exposure.symmetric(x,y))
+    print "Converting to scipy style"
+    l = slink.pointer_to_scipy(p, b)
     print "Writing confusion matrix"
     save_confusion_matrix(data, l)
 
@@ -186,8 +188,20 @@ def save_confusion_matrix(data, l):
         fields.append(data.country_lookup.id2tok[nation])
     results = list()
     for cluster in range(num_nations):
-        result = ['Cluster %d' % cluster]
+        result = ['Cluster %d (%d vids)' % (cluster, sum(cluster_videos[cluster,:]))]
         tail = cluster_videos[cluster,:]
+        # Write individual videos
+        video_results = list()
+        for v in range(cluster_videos.shape[1]):
+            if cluster_videos[cluster,v] > 0:
+                video_results.append( (data.video_lookup.id2tok[v],) )
+        util.write_results_csv(
+            'findhierarchy'
+            , exp_id
+            , 'video_cluster_%d' % cluster
+            , video_results
+            , ('Id')
+        )
         for nation in range(num_nations):
             head = data.counts[nation,:]
             coaffiliation = exposure.symmetric(tail, head)
