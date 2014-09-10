@@ -51,9 +51,12 @@ def main():
     
     # Calculate video dendrogram
     print "Clustering videos"
-    p, b = slink.linkage(data.counts.transpose(), lambda x,y: 1.0 - exposure.symmetric(x,y))
+    video_counts = data.counts.transpose()
+    #video_counts = video_counts[0:100,:]
+    p, b = slink.linkage(video_counts, lambda x,y: 1.0 - exposure.symmetric(x,y))
     print "Converting to scipy style"
     l = slink.pointer_to_scipy(p, b)
+    save_linkage(l)
     print "Writing confusion matrix"
     save_confusion_matrix(data, l)
 
@@ -159,6 +162,10 @@ def get_clusters(l):
         del clusters[int(tail)]
         del clusters[int(head)]
     return clusters
+
+def save_linkage(l):
+    fields = ('Low', 'High', 'Dissimilarity', 'Ordinality')
+    util.write_results_csv('findhierarchy', exp_id, 'video_linkage', l, fields)    
     
 def save_confusion_matrix(data, l):
     '''Calculate and save a confusion matrix between video clusters and nations.'''
@@ -167,6 +174,8 @@ def save_confusion_matrix(data, l):
     # There are m+1 nodes for a linkage tree with m edges
     n = l.shape[0] + 1
     clusters = dict((i, set([i])) for i in range(n))
+    cluster_len = dict((i, 1) for i in range(n))
+    progress = list()
     for i, step in enumerate(np.array(l)):
         tail, head, dist, size = step
         # Stop when we have the same number of clusters as countries
@@ -174,12 +183,29 @@ def save_confusion_matrix(data, l):
             break;
         # Merge two clusters, creating a new one and deleting the originals
         clusters[n + i] = clusters[int(tail)].union(clusters[int(head)])
+        old_tail = clusters[int(tail)]
+        old_head = clusters[int(head)]
         del clusters[int(tail)]
         del clusters[int(head)]
+        # Update length counts
+        cluster_len[int(n + i)] = cluster_len[int(tail)] + cluster_len[int(head)]
+        old_tail_len = cluster_len[int(tail)]
+        old_head_len = cluster_len[int(head)]
+        del cluster_len[int(tail)]
+        del cluster_len[int(head)]
+        top_len = sorted(cluster_len.values(), reverse=True)[0:num_nations]
+        all_len = sorted(cluster_len.values())
+        # Calculate cluster entropy
+        top_total = float(sum(top_len))
+        all_total = float(sum(all_len))
+        top_entropy = sum([x/top_total * math.log(top_total/x,2) for x in top_len])
+        all_entropy = sum([x/all_total * math.log(all_total/x,2) for x in all_len])
+        progress.append((dist, all_entropy, top_entropy))
     # Find number of times each nation has trended a video in a cluster
     cluster_videos = np.zeros((num_nations, num_videos))
     vcounts = data.counts.transpose() # [vid][cid]
-    for cluster, videos in enumerate(clusters.itervalues()):
+    best_clusters = dict(sorted(clusters.items(), key=lambda x: len(x))[-num_nations:])
+    for cluster, videos in enumerate(best_clusters.itervalues()):
         for video in videos:
             cluster_videos[cluster, video] = sum(vcounts[video,:])
     # Label results
@@ -207,6 +233,8 @@ def save_confusion_matrix(data, l):
             coaffiliation = exposure.symmetric(tail, head)
             result.append(coaffiliation)
         results.append(result)
+    progress_fields = ('Dissimilarity', 'Entropy', 'Top Entropy')
+    util.write_results_csv('findhierarchy', exp_id, 'video_progress', progress, progress_fields)
     util.write_results_csv('findhierarchy', exp_id, 'video_confusion', results, fields)
     
 if __name__ == '__main__':
