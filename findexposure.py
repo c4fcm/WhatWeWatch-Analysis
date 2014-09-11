@@ -27,10 +27,11 @@ inet_users_filename = 'external/internet_users/internet_users.csv'
 # ...
 population_filename = 'external/population-2010/population-2010.csv'
 
+# Read config
+config = ConfigParser.RawConfigParser()
+config.read('app.config')
+
 def main():
-    # Read config
-    config = ConfigParser.RawConfigParser()
-    config.read('app.config')
     
     exp_id = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     print "Beginning %s" % exp_id
@@ -145,10 +146,16 @@ def main():
         centrality.append(sym_ex.node[country_id]['undirected eigenvector centrality'])
     print 'Eigenvalue centrality ~ Mean Co-Affiliation:'
     print spstats.pearsonr(centrality, coaffiliation)
-    f = plt.figure(figsize=(3.3,2.5))
+    f = plt.figure(
+        figsize=(
+            config.getfloat('figure', 'width_single')
+            , config.getfloat('figure', 'height_single') ))
     plot_centrality_coaff(centrality, coaffiliation)
     plt.show()
-    plt.tight_layout(pad=0.25, w_pad=0.5, h_pad=0.0)
+    plt.tight_layout(
+        pad=config.getfloat('figure', 'pad')
+        , w_pad=config.getfloat('figure', 'pad_w')
+        , h_pad=config.getfloat('figure', 'pad_h') )
     util.create_result_dir('findexposure', exp_id)
     f.savefig('results/findexposure/%s/centrality-coaffiliation.eps' % (exp_id))
     
@@ -264,13 +271,19 @@ def load_population(filename):
     return population, labels
 
 def plot_centrality_coaff(centrality, coaffiliation):
-    fdtitle = {'fontsize':8}
-    fdaxis = {'fontsize':6}    
-    plt.plot(centrality, coaffiliation, 'o')
+    fdtitle = {'fontsize':config.getfloat('figure', 'title_fs')}
+    fdaxis = {'fontsize':config.getfloat('figure', 'axis_fs')}    
+    plt.plot(
+        centrality
+        , coaffiliation
+        , '.'
+        , markeredgewidth=0
+        , markerfacecolor=config.get('figure', 'marker_color')
+        , markersize=config.getfloat('figure', 'marker_size') )
     hx = plt.xlabel('Eigenvalue Centrality', fontdict=fdaxis)
     hy = plt.ylabel('Mean Co-Affiliation', fontdict=fdaxis)
     ht = plt.title('Mean Co-Affiliation vs. Eigenvalue Centrality', fontdict=fdtitle)
-    plt.tick_params('both', labelsize='6')
+    plt.tick_params('both', labelsize=config.getfloat('figure', 'tick_fs'))
 
 if __name__ =='__main__':
     main()
