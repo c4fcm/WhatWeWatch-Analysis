@@ -11,6 +11,7 @@ import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as spstats
+import scipy.special as spspecial
 
 import statistics
 import util
@@ -84,6 +85,96 @@ for loc in data.countries:
     country_span_ratios.append(ratio)
     results.append((loc, ratio, spread, spread_std, span, span_std, local_span, max_span))
 util.write_results_csv('findstatistics', exp_id, 'country_spread_span', results, fields)
+
+# Calculate lifespan histogram
+spans = range(min(spread_span.span_values), max(spread_span.span_values) + 1)
+span_counts = []
+for span in spans:
+    span_counts.append(len([x for x in spread_span.span_values if x == span]))
+
+# Calculate reach histogram
+reaches = range(min(spread_span.spread_values), max(spread_span.spread_values) + 1)
+reach_counts = []
+for reach in reaches:
+    reach_counts.append(len([x for x in spread_span.spread_values if x == reach]))
+
+# Create spread/span figure
+fig = plt.figure(
+    figsize=(
+        config.getfloat('figure', 'width_subplot_12')
+        , config.getfloat('figure', 'height_subplot_12') ))
+
+# Plot lifespan histogram
+fit_shape = 2.31
+ax = fig.add_subplot(121)
+ax.tick_params(
+    axis='both'
+    , which='major'
+    , labelsize=config.getint('figure', 'tick_fs') )
+plt.plot(
+    spans
+    , np.array(span_counts) / float(len(spread_span.span_values)) 
+    , '.'
+    , markersize=config.getint('figure', 'marker_size')
+    , markeredgewidth=0
+    , markerfacecolor=config.get('figure', 'marker_color') )
+y = (
+        np.ones((float(len(spans)),)) 
+        / spspecial.zeta(fit_shape, 1)
+        / np.array(spans)**(fit_shape) )
+plt.plot(spans, y, 'k-', markerfacecolor=config.get('figure', 'marker_color'))
+ax.set_xscale('log')
+ax.set_yscale('log')
+ax.set_xlim([0, max(spans)])
+ax.set_xlabel(
+    'Source Lifespan (days)'
+    , fontsize=config.getint('figure', 'axis_fs') )
+ax.set_ylabel(
+    'Frequency'
+    , fontsize=config.getint('figure', 'axis_fs') )
+ax.set_title(
+    '(a) Video Source Lifespan'
+    , fontsize=config.getint('figure', 'title_fs') )
+
+# Plot lifespan histogram
+fit_shape = 2.71
+ax = fig.add_subplot(122)
+ax.tick_params(
+    axis='both'
+    , which='major'
+    , labelsize=config.getint('figure', 'tick_fs') )
+plt.plot(
+    reaches
+    , np.array(reach_counts) / float(len(spread_span.spread_values)) 
+    , '.'
+    , markersize=config.getint('figure', 'marker_size')
+    , markeredgewidth=0
+    , markerfacecolor=config.get('figure', 'marker_color') )
+y = (
+        np.ones((float(len(reaches)),)) 
+        / spspecial.zeta(fit_shape, 1)
+        / np.array(reaches)**(fit_shape) )
+plt.plot(reaches, y, 'k-', markerfacecolor=config.get('figure', 'marker_color'))
+ax.set_xscale('log')
+ax.set_yscale('log')
+ax.set_xlim([0, max(reaches)])
+ax.set_xlabel(
+    'Global Reach (nations)'
+    , fontsize=config.getint('figure', 'axis_fs') )
+ax.set_ylabel(
+    'Frequency'
+    , fontsize=config.getint('figure', 'axis_fs') )
+ax.set_title(
+    '(b) Video Global Reach'
+    , fontsize=config.getint('figure', 'title_fs') )
+
+# Set figure layout and save
+plt.tight_layout(
+    pad=config.getfloat('figure', 'pad')
+    , w_pad=config.getfloat('figure', 'pad_w')
+    , h_pad=config.getfloat('figure', 'pad_h') )
+util.create_result_dir('findstatistics', exp_id)
+fig.savefig('results/findstatistics/%s/separate-spread-span.eps' % exp_id)
 
 # Calculate spread/span histogram
 h = spread_span.spread_span_hist()
