@@ -11,3 +11,19 @@ dates = 2013-05-13,2013-05-14
 
 [data]
 filename = 2013-11-20.csv
+
+[figure]
+width_single = 2.7
+height_single = 1.5
+width_subplot_12 = 3.3
+height_subplot_12 = 1.5
+width_subplot_22 = 3.3
+height_subplot_22 = 3.3
+pad = 0.25
+pad_w = 0.5
+pad_h = 0
+title_fs = 6
+tick_fs = 4
+axis_fs = 4
+marker_size = 2
+marker_color = black
