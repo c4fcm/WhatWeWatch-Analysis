@@ -241,7 +241,7 @@ ax.set_ylabel(
     'Mean Source Lifespan (days)'
     , fontsize=config.getint('figure', 'axis_fs') )
 ax.set_title(
-    '(b) National Mean Lifespan vs. Reach'
+    '(b) Mean Lifespan vs. Reach'
     , fontsize=config.getint('figure', 'title_fs') )
 
 # Set figure layout and save
