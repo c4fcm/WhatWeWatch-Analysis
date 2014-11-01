@@ -14,6 +14,7 @@ import scipy as sp
 import scipy.stats as spstats
 
 import exposure
+import external
 import util
 
 # External migration data, format is:
@@ -44,6 +45,16 @@ gdp_filename = 'external/gdp-2010/gdp-2010.csv'
 # dza,Algeria,4700000
 inet_users_filename = 'external/internet_users/internet_users.csv'
 
+# Colonial history filename
+# Head, Tail
+colonial_filename = 'external/colonial-2011/icow.csv'
+
+total_migration_filename = 'external/migration-2010/total-stock.csv'
+area_filename = 'external/area/area.csv'
+hofstede_filename = 'external/culture/hofstede.csv'
+language_diversity_filename = 'external/languages/ldi-clean.csv'
+religion_filename = 'external/religion/cia-factbook.csv'
+
 def main():
     
     # Read config
@@ -62,26 +73,44 @@ def main():
     language = load_language(language_filename)
     gdp = load_gdp(gdp_filename)
     inet_users = load_inet_users(inet_users_filename)
+    colonial = load_colonial(colonial_filename)
+    migration = external.Migration(total_migration_filename)
+    area = external.Area(area_filename)
+    culture = external.Culture(hofstede_filename)
+    ldi = external.Language(language_diversity_filename)
+    religion = external.Religion(religion_filename)
     fields = (
         'Source'
         , 'Target'
         , 'Video Exposure'
-        , 'Pop Min', 'Pop Max', 'Pop Mean', 'Pop Rel Diff'
-        , 'GDP Min', 'GDP Max', 'GDP Mean', 'GDP Diff', 'GDP Rel Diff'
+        , 'Pop Min', 'Pop Max', 'Pop Dense Min', 'Pop Dense Max'
+        , 'GDP PC Min PC', 'GDP PC Max', 'GDP Max', 'GDP Min'
+        , 'Area Max', 'Area Min'
         , 'Distance'
-        , 'Common Language'
-        , 'Migration Exposure'
-        , 'Inet Users Min', 'Inet Users Max', 'Inet Users Mean'
-        , 'Inet Users Diff', 'Inet Users Rel Diff'
-        , 'Inet Pen Min', 'Inet Pen Max', 'Inet Pen Mean'
-        , 'Inet Pen Diff', 'Inet Pen Rel Diff'
+        , 'Common Language', 'LDI Max', 'LDI Min'
+        , 'Religion Common', 'Religion Both Muslim'
+        , 'Direct Colonial'
+        , 'Migration Coaff', 'Migration Min Total', 'Migration Max Total'
+        , 'Inet Users Min', 'Inet Users Max', 'Inet Pen Min', 'Inet Pen Max'
+        , 'PDI Max', 'PDI Min'
+        , 'IDV Max', 'IDV Min'
+        , 'MAS Max', 'MAS Min'
+        , 'UAI Max', 'UAI Min'
+        , 'LTOWVS Max', 'LTOWVS Min'
+        , 'IVR Max', 'IVR Min'
     )
     results = find_pair_stats(
         data
+        , migration
+        , area
+        , culture
+        , ldi
+        , religion
         , stock_by_head_tail
         , population
         , labels
         , language
+        , colonial
         , gdp
         , inet_users
         , exp_id
@@ -149,6 +178,21 @@ def load_gdp(filename):
             gdp[cid] = float(row[2].strip().lower().replace(',',''))
     return gdp
 
+def load_colonial(data_csv):
+    result = {}
+    with open(data_csv, 'rU') as f:
+        reader = csv.reader(f)
+        #Skip header
+        reader.next()
+        for row in reader:
+            head = row[0]
+            tail = row[1]
+            result[head] = result.get(head, [])
+            result[head].append(tail)
+            result[tail] = result.get(tail, [])
+            result[tail].append(head)
+    return result
+
 def load_inet_users(filename):
     inet_users = {}
     with open(filename, 'rU') as f:
@@ -159,7 +203,37 @@ def load_inet_users(filename):
             inet_users[cid] = int(row[2].strip().lower().replace(',',''))
     return inet_users
 
-def find_pair_stats(data, stock_by_head_tail, population, labels, language, gdp, inet_users, exp_id):
+def load_colonial(data_csv):
+    result = {}
+    with open(data_csv, 'rU') as f:
+        reader = csv.reader(f)
+        #Skip header
+        reader.next()
+        for row in reader:
+            head = row[0]
+            tail = row[1]
+            result[head] = result.get(head, [])
+            result[head].append(tail)
+            result[tail] = result.get(tail, [])
+            result[tail].append(head)
+    return result
+
+def find_pair_stats(
+        data
+        , migration
+        , area
+        , culture
+        , ldi
+        , religion
+        , stock_by_head_tail
+        , population
+        , labels
+        , language
+        , colonial
+        , gdp
+        , inet_users
+        , exp_id
+    ):
     exposures = []
     mig_exposures = []
     results = []
@@ -186,6 +260,12 @@ def find_pair_stats(data, stock_by_head_tail, population, labels, language, gdp,
             gdp_mean = (gdp_low + gdp_high) / 2.0
             gdp_diff = gdp_high - gdp_low
             gdp_rdiff = gdp_diff / gdp_mean
+            gdp_tot_low, gdp_tot_high = sorted([gdp_head*p_head,gdp_tail*p_tail])
+            # Area
+            area_low, area_high = sorted([area.total[head], area.total[tail]])
+            p_dense_head = p_head / area.total[head]
+            p_dense_tail = p_tail / area.total[tail]
+            p_dense_low, p_dense_high = sorted([p_dense_head, p_dense_tail])
             # Distance
             dist = distance_pair(labels[head], labels[tail])
             # Find migrant exposure
@@ -194,33 +274,78 @@ def find_pair_stats(data, stock_by_head_tail, population, labels, language, gdp,
             mig_ex = migrant_exposure_pair(to_head, to_tail, p_tail, p_head)
             exposures.append(ex)
             mig_exposures.append(mig_ex)
-            # Find if nations share a language
+            mig_tot_low, mig_tot_high = sorted([migration.total[head], migration.total[tail]])
+            # Language stats
+            ldi_max, ldi_min = sorted([ldi.ldi[head], ldi.ldi[tail]])
             if language_common_pair(language[head], language[tail]):
                 common = 1
             else:
                 common = 0
+            # Religion stats
+            if religion.have_common(head, tail):
+                religion_common = 1
+            else:
+                religion_common = 0
+            if religion.both_are("muslim", head, tail):
+                religion_muslim = 1
+            else:
+                religion_muslim = 0
+            # Find whether there is a direct colonial relationship
+            if head in colonial.get(tail, []):
+                direct_colonial = 1
+            else:
+                direct_colonial = 0
             # Internet use stats
             inet_head = inet_users[head]
             inet_tail = inet_users[tail]
             inet_low, inet_high = sorted([inet_head, inet_tail])
-            inet_mean = (inet_low + inet_high) / 2.0
-            inet_diff = inet_high - inet_low
-            inet_rdiff = inet_diff / inet_mean
             inet_low_per, inet_high_per = sorted([inet_head/p_head, inet_tail/p_tail])
-            inet_mean_per = (inet_low_per + inet_high_per) / 2.0
-            inet_diff_per = inet_high_per - inet_low_per
-            inet_rdiff_per = inet_diff_per / inet_mean_per
+            # Cultural stats
+            try:
+                pdi_min, pdi_max = sorted([culture.pdi[head], culture.pdi[tail]])
+            except KeyError:
+                pdi_min, pdi_max = ('', '')
+            try:
+                idv_min, idv_max = sorted([culture.idv[head], culture.idv[tail]])
+            except KeyError:
+                idv_min, idv_max = ('', '')
+            try:
+                mas_min, mas_max = sorted([culture.mas[head], culture.mas[tail]])
+            except KeyError:
+                mas_min, mas_max = ('', '')
+            try:
+                uai_min, uai_max = sorted([culture.uai[head], culture.uai[tail]])
+            except KeyError:
+                uai_min, uai_max = ('', '')
+            try:
+                ltowvs_min, ltowvs_max = sorted([culture.ltowvs[head], culture.ltowvs[tail]])            
+            except KeyError:
+                ltowvs_min, ltowvs_max = ('', '')
+            try:
+                ivr_min, ivr_max = sorted([culture.ivr[head], culture.ivr[tail]])            
+            except KeyError:
+                ivr_min, ivr_max = ('', '')
             # Construct result
             results.append((
                 tail, head
                 , ex
-                , p_low, p_high, p_mean, p_rdiff
-                , gdp_low, gdp_high, gdp_mean, gdp_diff, gdp_rdiff
+                , p_low, p_high, p_dense_low, p_dense_high
+                , gdp_low, gdp_high, gdp_tot_low, gdp_tot_high
+                , area_low, area_high
                 , dist
-                , common
+                , common, ldi_max, ldi_min
+                , religion_common, religion_muslim
+                , direct_colonial
                 , mig_ex
-                , inet_low, inet_high, inet_mean, inet_diff, inet_rdiff
-                , inet_low_per, inet_high_per, inet_mean_per, inet_diff_per, inet_rdiff_per
+                , mig_tot_low
+                , mig_tot_high
+                , inet_low, inet_high, inet_low_per, inet_high_per
+                , pdi_min, pdi_max
+                , idv_min, idv_max
+                , mas_min, mas_max
+                , uai_min, uai_max
+                , ltowvs_min, ltowvs_max
+                , ivr_min, ivr_max
                 ))
     mig_exposures = np.array(mig_exposures)
     exposures = np.array(exposures)

@@ -24,8 +24,28 @@ inet_users_filename = 'external/internet_users/internet_users.csv'
 # External population data, format is:
 # Id,Alpha2,Label,Population
 # dza,dz,Algeria,37062820
-# ...
 population_filename = 'external/population-2010/population-2010.csv'
+
+# External gdp data (per capita, millions), format is:
+# Id,Label,GDP <Year>
+# afg,Afghanistan,934.79
+gdp_filename = 'external/gdp-2010/gdp-2010.csv'
+
+# Migration coaffiliation data, format is:
+# Id,mean_migration_aff
+# yem,0.0004669
+migration_filename = 'external/migration-2010/mean_affiliation.csv'
+
+# Remittance coaffiliation data, format is:
+# Id,mean_remit_aff
+# yem,1.94E-05
+remittance_filename = 'external/remittance-2010/mean_affiliation.csv'
+
+total_migration_filename = 'external/migration-2010/total-stock.csv'
+area_filename = 'external/area/area.csv'
+hofstede_filename = 'external/culture/hofstede.csv'
+language_diversity_filename = 'external/language/ldi-clean.csv'
+religion_filename = 'external/religion/cia-factbook.csv'
 
 # Read config
 config = ConfigParser.RawConfigParser()
@@ -40,9 +60,12 @@ def main():
     filename = 'data/%s' % config.get('data', 'filename')
     data = util.VideoData.from_csv(filename)
 
-    # Load population and internet penetration data
+    # Load external data
     population, labels = load_population(population_filename)
     inet_users = load_inet_users(inet_users_filename)
+    gdp = load_gdp(gdp_filename)
+    migration_aff = load_key_value(migration_filename)
+    remit_aff = load_key_value(remittance_filename)
 
     # Calculate average exposure with other countries
     mean_ex = {}
@@ -117,7 +140,12 @@ def main():
             , sym_ex.node[country_id]['recalculated betweenness']
             , mean_ex[country]
             , mean_peers[country_id]
+            , population[country]
+            , float(gdp[country])*float(population[country])
+            , gdp[country]
             , inet_pen
+            , migration_aff.get(country, '')
+            , remit_aff.get(country, '')
         ))
     
     # Write output
@@ -132,9 +160,14 @@ def main():
         , 'Eigenvalue Centrality'
         , 'Betweenness Centrality'
         , 'Recalculated Betweenness Cent'
-        , 'Mean Exposure'
+        , 'Mean Aff'
         , 'Mean Peers'
-        , 'Internet Penetration')
+        , 'Pop'
+        , 'GDP'
+        , 'Per Cap GDP'
+        , 'Inet Pen'
+        , 'Migrant Aff'
+        , 'Remit Aff')
     util.write_results_csv('findexposure', exp_id, 'countries', rows, fields)
     
     # Plot mean co-affiliation vs eigenvalue centrality
@@ -269,6 +302,33 @@ def load_population(filename):
             population[cid] = pop
             labels[cid] = row[2].strip()
     return population, labels
+
+def load_gdp(data_csv):
+    gdp = {}
+    with open(data_csv, 'rU') as f:
+        reader = csv.reader(f)
+        #Skip header
+        reader.next()
+        for row in reader:
+            try:
+                code = row[0].lower()
+                label = row[1]
+                gdp[code] = float(row[2].replace(',', ''))
+            except ValueError:
+                logging.warning('Skipping gdp for %s' % label)
+                print row
+    return gdp
+
+def load_key_value(data_csv):
+    result = {}
+    with open(data_csv, 'rU') as f:
+        reader = csv.reader(f)
+        #Skip header
+        reader.next()
+        for row in reader:
+            code = row[0].lower()
+            result[code] = row[1]
+    return result
 
 def plot_centrality_coaff(centrality, coaffiliation):
     fdtitle = {'fontsize':config.getfloat('figure', 'title_fs')}

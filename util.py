@@ -198,3 +198,6 @@ class Lookup(object):
     def get_id(self, tok):
         '''Get an integer id for the named token.'''
         return self.tok2id[tok]
+    
+    def __len__(self):
+        return len(self.id2tok)
