@@ -54,6 +54,7 @@ area_filename = 'external/area/area.csv'
 hofstede_filename = 'external/culture/hofstede.csv'
 language_diversity_filename = 'external/languages/ldi-clean.csv'
 religion_filename = 'external/religion/cia-factbook.csv'
+gci_filename = 'external/trade/dhl_gci_2011.csv'
 
 def main():
     
@@ -79,12 +80,14 @@ def main():
     culture = external.Culture(hofstede_filename)
     ldi = external.Language(language_diversity_filename)
     religion = external.Religion(religion_filename)
+    trade = external.Trade(gci_filename)
     fields = (
         'Source'
         , 'Target'
         , 'Video Coaff'
         , 'Pop Min', 'Pop Max', 'Pop Dense Min', 'Pop Dense Max'
         , 'GDP PC Min', 'GDP PC Max', 'GDP Max', 'GDP Min'
+        , 'GCI Min', 'GCI Max'
         , 'Area Max', 'Area Min'
         , 'Dist'
         , 'Common Language', 'LDI Max', 'LDI Min'
@@ -106,6 +109,7 @@ def main():
         , culture
         , ldi
         , religion
+        , trade
         , stock_by_head_tail
         , population
         , labels
@@ -225,6 +229,7 @@ def find_pair_stats(
         , culture
         , ldi
         , religion
+        , trade
         , stock_by_head_tail
         , population
         , labels
@@ -261,6 +266,8 @@ def find_pair_stats(
             gdp_diff = gdp_high - gdp_low
             gdp_rdiff = gdp_diff / gdp_mean
             gdp_tot_low, gdp_tot_high = sorted([gdp_head*p_head,gdp_tail*p_tail])
+            # Trade
+            gci_low, gci_high = sorted([trade.gci_overall[head], trade.gci_overall[tail]])
             # Area
             area_low, area_high = sorted([area.total[head], area.total[tail]])
             p_dense_head = p_head / area.total[head]
@@ -274,7 +281,9 @@ def find_pair_stats(
             mig_ex = migrant_exposure_pair(to_head, to_tail, p_tail, p_head)
             exposures.append(ex)
             mig_exposures.append(mig_ex)
-            mig_tot_low, mig_tot_high = sorted([migration.total[head], migration.total[tail]])
+            mig_head = migration.total[head]
+            mig_tail = migration.total[tail]
+            mig_tot_low, mig_tot_high = sorted([mig_head/p_head, mig_tail/p_tail])
             # Language stats
             ldi_max, ldi_min = sorted([ldi.ldi[head], ldi.ldi[tail]])
             if language_common_pair(language[head], language[tail]):
@@ -331,6 +340,7 @@ def find_pair_stats(
                 , ex
                 , p_low, p_high, p_dense_low, p_dense_high
                 , gdp_low, gdp_high, gdp_tot_low, gdp_tot_high
+                , gci_low, gci_high
                 , area_low, area_high
                 , dist
                 , common, ldi_max, ldi_min

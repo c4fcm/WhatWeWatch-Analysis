@@ -128,4 +128,17 @@ class Religion(object):
     
     def both_are(self, name, head, tail):
         return name in self.all[head] and name in self.all[tail]
-
+    
+class Trade(object):
+    def __init__(self, gci_filename):
+        self.gci_overall = {}
+        with open(gci_filename, 'rU') as f:
+            reader = csv.reader(f)
+            # Skip header
+            reader.next()
+            for row in reader:
+                iso, label, gci_overall, gci_depth, gci_breadth = row
+                try:
+                    self.gci_overall[iso] = int(gci_overall)
+                except ValueError:
+                    pass

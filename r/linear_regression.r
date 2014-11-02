@@ -1,10 +1,16 @@
-pairfile = "/Users/elplatt/WhatWeWatch-Analysis/results/findpairstats/2014-11-02 10:39:58/pairs.csv"
+pairfile = "/Users/elplatt/WhatWeWatch-Analysis/results/findpairstats/2014-11-02 16:47:28/pairs.csv"
 pairdata = read.csv(pairfile, header=TRUE)
 clean = pairdata
 #clean = clean[which(clean$Mig.Coaff>0,arr.ind=TRUE),]
 attach(clean)
 
 Video.SI = -log(Video.Coaff)
+GDP.Mean = GDP.Max/2 + GDP.Min/2
+GDP.Diff = GDP.Min/2 - GDP.Max/2
+GDP.PC.Mean = GDP.PC.Max/2 + GDP.PC.Min/2
+GDP.PC.Diff = GDP.PC.Max/2 - GDP.PC.Min/2
+GCI.Mean = GCI.Max/2 + GCI.Min/2
+GCI.Diff = GCI.Max/2 - GCI.Min/2
 LDI.Mean = LDI.Max/2 + LDI.Min/2; LDI.Diff = LDI.Max/2 - LDI.Min/2
 Pop.Dense.Mean = Pop.Dense.Max/2 + Pop.Dense.Min/2;
 Pop.Dense.Diff = Pop.Dense.Max/2 - Pop.Dense.Min/2
